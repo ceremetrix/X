@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>XTK TEST WITHOUT COMPILATION</title>
+
+    <script type="text/javascript" src="lib/google-closure-library/closure/goog/base.js"></script>
+    <script type="text/javascript" src="xtk-deps.js"></script>
+
+    <script type="text/javascript">
+
+        // include all used X-classes here
+        // this is only required when using the xtk-deps.js file
+        goog.require('X.renderer3D');
+        goog.require('X.renderer2D');
+        goog.require('X.volume')
+
+        window.onload = function () {
+
+            // create and initialize a 3D renderer
+            var r = new X.renderer3D();
+            r.container = 'r';
+            r.init();
+
+            // create the 2D renderers
+            // .. for the X orientation
+            var sliceX = new X.renderer2D();
+            sliceX.container = 'sliceX';
+            sliceX.orientation = 'X';
+            //sliceX.bgcolor = [255,255,255];
+            sliceX.init();
+            // .. for Y
+            var sliceY = new X.renderer2D();
+            sliceY.container = 'sliceY';
+            sliceY.orientation = 'Y';
+            sliceY.init();
+            // .. and for Z
+            var sliceZ = new X.renderer2D();
+            sliceZ.container = 'sliceZ';
+            sliceZ.orientation = 'Z';
+            sliceZ.init();
+
+            // create a volume
+            var volume = new X.volume();
+            volume.file = "../Images/Patient01_norm.NII";
+        
+            //alert(volume.color[1000,10,0]);
+            //volume.maxColor = [1, .4, .1];
+            //volume.minColor = [0, 0, .5];
+            
+            // add the volume in the main renderer
+            // we choose the sliceX here, since this should work also on
+            // non-webGL-friendly devices like Safari on iOS
+            sliceX.add(volume);
+
+            // start the loading/rendering
+            sliceX.render();
+
+            sliceX.onShowtime = function () {
+
+                sliceY.add(volume);
+                sliceY.render();
+                sliceZ.add(volume);
+                sliceZ.render();
+
+                r.add(volume);
+                r.render(volume);
+
+                //volume.minColor = [1,0,0];
+                //volume.maxColor = [0,0,1];
+                
+            }
+
+            // adjust the camera position a little bit, just for visualization purposes
+            r.camera.position = [0, 0, 200];
+            
+        };
+    </script>
+
+</head>
+<body>
+    <!--3D slice rendering-->
+    <div id='r' class='threeDRenderer' style="background-color: #000; width: 100%; height: 70%; margin-bottom: 2px;"></div>
+    <!--2D slice viewers-->
+    <div id="2d renderers" style="background-color: #000; width: 100%; height: 30%; float: left;">
+        <div id="sliceX"
+             style="border-top: 2px solid red; background-color: #000; width: 32%; height: 100%; float: left;"></div>
+        <div id="sliceY"
+             style="border-top: 2px solid limegreen;background-color: #000; width: 32%; height: 100%; float: left;"></div>
+        <div id="sliceZ"
+             style="border-top: 2px solid blue; background-color: #000; width: 32%; height: 100%; float: left;"></div>
+    </div>
+    <!--/2D slice viewers-->
+</body>
+
+
+</html>
