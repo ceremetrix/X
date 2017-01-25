@@ -152,6 +152,8 @@ X.renderer2D = function() {
    * @protected
    */
   this._currentSlice = -1;
+  // LL added from D.B. version:
+  this._currentSliceId = -1;
 
   /**
    * The buffer of the current lower threshold.
@@ -202,6 +204,10 @@ X.renderer2D = function() {
   this._radiological = true;
 
   this._normalizedScale = 1;
+
+// LL added from D.B. version: 
+// to check state in case of update with colormaps
+    this._objectModified = false;
 
 };
 // inherit from X.base
@@ -547,6 +553,48 @@ X.renderer2D.prototype.resetViewAndRender = function() {
   // .. render
   // this.render_(false, false);
 };
+
+// --------------------------------------
+// LL added from D.B. version - important!
+
+/**
+ * @inheritDoc
+ */
+X.renderer2D.prototype.setColortable = function(index) {
+
+    window.console.log('X.renderer2D.setColortable(' + index + ')');
+
+    var _volume = this._topLevelObjects[0];
+
+    if (index == 0)
+	this._colArrayCURRENT = this._colArrayDEFAULT;
+    if (index == 1)
+	this._colArrayCURRENT = this._colArrayIDS;
+    else if (index == 2)
+	this._colArrayCURRENT = this._colArrayHEAT;
+
+    this._colArrayChanged =  true;
+
+}
+
+X.renderer2D.prototype.setLabelmapColortable = function(index) {
+
+    window.console.log('X.renderer2D.setLabelmapColortable(' + index + ')');
+
+    var _volume = this._topLevelObjects[0];
+
+    if (index == 0)
+	this._labelArrayCURRENT = this._colArrayDEFAULT;
+    if (index == 1)
+	this._labelArrayCURRENT = this._colArrayIDS;
+    else if (index == 2)
+	this._labelArrayCURRENT = this._colArrayHEAT;
+
+    this._labelArrayChanged =  true;
+
+};
+
+// -------------------------------------------
 
 
 /**
@@ -1055,6 +1103,9 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
   var _sliceWidth = this._sliceWidth;
   var _sliceHeight = this._sliceHeight;
 
+  // LL added from D.B. version: -not sure if necessary
+  var _currentSliceId = _slice._id;
+
   //
   // FRAME BUFFERING
   //
@@ -1074,8 +1125,10 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
   var _maxScalarRange = _volume._max;
   var _lowerThreshold = _volume._lowerThreshold;
   var _upperThreshold = _volume._upperThreshold;
-  var _windowLow = _volume._windowLow;
-  var _windowHigh = _volume._windowHigh;
+  var _windowLow = _volume._windowLow; // different here than before
+  var _windowHigh = _volume._windowHigh; // different here than before
+  // LL added from D.B. version:
+  var _modified = _volume._modified;
 
   // caching mechanism
   // we need to redraw the pixels only
@@ -1083,11 +1136,18 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
   // - if the threshold has changed
   // - if the window/level has changed
   // - the labelmap show only color has changed
-  var _redraw_required = (this._currentSlice != _currentSlice ||
+  // LL added from D.B. version: 1st 3 cases here:
+  var _redraw_required = (this._colArrayChanged == true ||
+      this._labelArrayChanged == true ||
+      this._currentSliceId != _currentSliceId ||  
+      this._currentSlice != _currentSlice ||
       this._lowerThreshold != _lowerThreshold ||
       this._upperThreshold != _upperThreshold ||
-      this._windowLow != _windowLow || this._windowHigh != _windowHigh || (_labelmapShowOnlyColor && !X.array
-      .compare(_labelmapShowOnlyColor, this._labelmapShowOnlyColor, 0, 0, 4)));
+      this._windowLow != _windowLow || 
+      this._windowHigh != _windowHigh || 
+      (_labelmapShowOnlyColor && !X.array
+      .compare(_labelmapShowOnlyColor, 
+        this._labelmapShowOnlyColor, 0, 0, 4)));
 
   if (_redraw_required) {
     // update FBs with new size
@@ -1114,22 +1174,32 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
       // grab the pixel intensity
       // slice data is normalized (probably shouldn't ?)
       // de-normalize it (get real value)
-      var _intensity = (_sliceData[_index] / 255) * _fac1 + _volume._min;
+      var _intensity = (_sliceData[_index] / 255) * _fac1 + _volume._min; // different here than before
+      // LL added from D.B. version:
+      var _origIntensity = _sliceData[_index];
+      var _origIntensityR = _sliceData[_index];
+      var _origIntensityG = _sliceData[_index + 1];
+      var _origIntensityB = _sliceData[_index + 2];
+      var _origIntensityA = _sliceData[_index + 3];
 
       // apply window/level
-      var _window = _windowHigh - _windowLow;
-      var _level = _window/2 + _windowLow;
+      // LL added (changed) from D.B. version:
+      // could be something shady here b/c a lot was changed
+      var _fac = _windowHigh - _windowLow;
+      _origIntensity = (_origIntensity / 255 - _windowLow) / _fac;
+      _origIntensity = Math.floor(_origIntensity * 255);
+        
+      _origIntensityR = (_origIntensityR / 255 - _windowLow) / _fac;
+      _origIntensityR = Math.floor(_origIntensityR * 255);
 
-      var _origIntensity = 0;
-      if(_intensity < _level - _window/2 ){
-        _origIntensity = 0;
-      }
-      else if(_intensity > _level + _window/2 ){
-        _origIntensity = 255;
-      }
-      else{
-        _origIntensity  = 255 * (_intensity - (_level - _window / 2))/_window;
-      }
+      _origIntensityG = (_origIntensityG / 255 - _windowLow) / _fac;
+      _origIntensityG = Math.floor(_origIntensityG * 255);
+
+      _origIntensityB = (_origIntensityB / 255 - _windowLow) / _fac;
+      _origIntensityB = Math.floor(_origIntensityB * 255);
+
+      _origIntensityA = (_origIntensityA / 255 - _windowLow) / _fac;
+      _origIntensityA = Math.floor(_origIntensityA * 255);
 
       // apply thresholding
       if (_intensity >= _lowerThreshold && _intensity <= _upperThreshold) {
@@ -1142,12 +1212,24 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
             _volume._maxColor[1], _volume._maxColor[2]);
         var minColor = new goog.math.Vec3(_volume._minColor[0],
             _volume._minColor[1], _volume._minColor[2]);
-        _color = maxColor.scale(_origIntensity).add(
-            minColor.scale(255 - _origIntensity));
+        
+        // LL added (changed) from D.B. version:
+        //GUARD AGAINST MISSING COL ARRAY INDECEs
 
-        // .. and back to an array
-        _color = [Math.floor(_color.x), Math.floor(_color.y),
-                  Math.floor(_color.z), 255];
+        _origIntensityR = Math.min(_origIntensityR, this._colArrayCURRENT.length -1);
+        _origIntensityR = Math.max(_origIntensityR, 0);
+
+        _origIntensityG = Math.min(_origIntensityG, this._colArrayCURRENT.length -1);
+        _origIntensityG = Math.max(_origIntensityG, 0);
+        
+        _origIntensityB = Math.min(_origIntensityB, this._colArrayCURRENT.length -1);
+        _origIntensityB = Math.max(_origIntensityB, 0);
+
+        //LOOK UP CORRECT LOOKUP
+        _color = [this._colArrayCURRENT[_origIntensityR][0], 
+                this._colArrayCURRENT[_origIntensityG][1],
+                this._colArrayCURRENT[_origIntensityB][2],
+                255];
 
         if (_currentLabelMap) {
 
@@ -1155,9 +1237,17 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
           // check if all labels are shown or only one
           if (_labelmapShowOnlyColor[3] == -255) {
 
-            // all labels are shown
-            _label = [_labelData[_index], _labelData[_index + 1],
-                      _labelData[_index + 2], _labelData[_index + 3]];
+            // LL added (changed) from D.B. version:
+            var alpha = 0;
+
+            if((_labelData[_index] + _labelData[_index + 1] + 
+            _labelData[_index + 2]) > 0)
+            alpha = 255;
+
+            _label = [this._labelArrayCURRENT[_labelData[_index]][0], 
+                    this._labelArrayCURRENT[_labelData[_index + 1]][1],
+                    this._labelArrayCURRENT[_labelData[_index + 2]][2],
+                    alpha];                        
 
           } else {
 
@@ -1231,6 +1321,12 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
     this._upperThreshold = _upperThreshold;
     this._windowLow = _windowLow;
     this._windowHigh = _windowHigh;
+    // LL added from D.B. version:
+    this._currentSliceId = _currentSliceId;
+    this._objectModified = false;
+    _volume._modified = false;
+    this._colArrayChanged = false;
+    this._labelArrayChanged = false;   
 
     if (_currentLabelMap) {
 

@@ -214,9 +214,14 @@ X.shaders = function() {
   t2 += '     vec3 _minrange = vec3(_windowLow,_windowLow,_windowLow);\n';
   t2 += '     vec3 _maxrange = vec3(_windowHigh,_windowHigh,_windowHigh);\n';
   t2 += '     vec3 fac = _maxrange - _minrange;\n';
-  t2 += '     textureSum = vec4((textureSum.r - _minrange)/fac,1);\n';
+  //LL added from D.B. version -------------------
+  t2 += '     textureSum.r = (textureSum.r - _windowLow)/(_windowHigh - _windowLow);\n';
+  t2 += '     textureSum.g = (textureSum.g - _windowLow)/(_windowHigh - _windowLow);\n';
+  t2 += '     textureSum.b = (textureSum.b - _windowLow)/(_windowHigh - _windowLow);\n';
+  //t2 += '     textureSum = vec4((textureSum.r - _minrange)/fac,1);\n';
   // map volume scalars to a linear color gradient
-  t2 += '     textureSum = textureSum.r * vec4(volumeScalarMaxColor,1) + (1.0 - textureSum.r) * vec4(volumeScalarMinColor,1);\n';
+  //t2 += '     textureSum = textureSum.r * vec4(volumeScalarMaxColor,1) + (1.0 - textureSum.r) * vec4(volumeScalarMinColor,1);\n';
+  // End addition ------------------------
   t2 += '   }\n';
   t2 += '   if (useLabelMapTexture) {\n'; // special case for label maps
   t2 += '     vec4 texture2 = texture2D(textureSampler2,fragmentTexturePos);\n';
