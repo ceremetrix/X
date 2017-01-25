@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>XTK TEST WITHOUT COMPILATION</title>
-
+    <link rel="stylesheet" type="text/css" href="/../css/main.css" />
     <script type="text/javascript" src="lib/google-closure-library/closure/goog/base.js"></script>
     <script type="text/javascript" src="xtk-deps.js"></script>
 
@@ -41,7 +41,7 @@
 
             // create a volume
             var volume = new X.volume();
-            volume.file = "../Images/Patient01_norm.NII";
+            volume.file = "/../Images/masked_pt01.nii";
         
             //alert(volume.color[1000,10,0]);
             //volume.maxColor = [1, .4, .1];
@@ -63,6 +63,7 @@
                 sliceZ.render();
 
                 r.add(volume);
+                //r.setColortable(2);
                 r.render(volume);
 
                 //volume.minColor = [1,0,0];
@@ -81,14 +82,14 @@
     <!--3D slice rendering-->
     <div id='r' class='threeDRenderer' style="background-color: #000; width: 100%; height: 70%; margin-bottom: 2px;"></div>
     <!--2D slice viewers-->
-    <div id="2d renderers" style="background-color: #000; width: 100%; height: 30%; float: left;">
-        <div id="sliceX"
-             style="border-top: 2px solid red; background-color: #000; width: 32%; height: 100%; float: left;"></div>
-        <div id="sliceY"
-             style="border-top: 2px solid limegreen;background-color: #000; width: 32%; height: 100%; float: left;"></div>
-        <div id="sliceZ"
-             style="border-top: 2px solid blue; background-color: #000; width: 32%; height: 100%; float: left;"></div>
-    </div>
+
+    <div id="sliceX"
+            style="border-top: 2px solid red; background-color: #000; width: 32%; height: 30%; float: left;"></div>
+    <div id="sliceY"
+            style="border-top: 2px solid limegreen;background-color: #000; width: 32%; height: 30%; float: left;"></div>
+    <div id="sliceZ"
+            style="border-top: 2px solid blue; background-color: #000; width: 32%; height: 30%; float: left;"></div>
+
     <!--/2D slice viewers-->
 </body>
 
