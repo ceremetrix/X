@@ -404,7 +404,7 @@ X.renderer3D.prototype.init = function() {
 
 };
 
-//LL added from D.B. version:
+// LL added from D.B. version: ---------------
 X.renderer3D.prototype.update  = function(object) {
     //requires the volume to be loaded
     //window.console.log('X.renderer2d.update()');
@@ -413,7 +413,7 @@ X.renderer3D.prototype.update  = function(object) {
 
     this.update_(object);
 };
-
+//-----------------------------
 
 /**
  * Add a pair of shaders to this renderer. The renderer has to be initialized
@@ -523,8 +523,7 @@ X.renderer3D.prototype.addShaders = function(shaders) {
 
 };
 
-//---------------------------------------
-//LL added from D.B. version:
+// LL added from D.B. version: ----------------
 /**
  * @inheritDoc
  */
@@ -548,8 +547,8 @@ X.renderer3D.prototype.setColortable = function(index) {
 	    if(_volume._children[i]._children[j]){
 		_volume._children[i]._children[j]._texture._dirty = true;
 	    }
-	  }
-  }
+	}
+    }
 
     //_volume._texture._dirty = true;
     this.update_(_volume);
@@ -612,7 +611,8 @@ X.renderer3D.prototype.resetTextures = function(){
 
 
 };
-//---------------------------------------------------
+//--------------------------------------
+
 
 /**
  * @inheritDoc
@@ -877,69 +877,68 @@ X.renderer3D.prototype.update_ = function(object) {
           this._context.pixelStorei(this._context.UNPACK_ALIGNMENT, 1);
           
         }
-        //-------------------------------
-        //LL added from D.B. version:
-        var dst = new Uint8Array(texture._rawData);
+        // LL added from D.B. version: -----------------
+		var dst = new Uint8Array(texture._rawData); //LL: not Uint8Array
 		//console.log(dst);
 
-        for(var i = 0; i < dst.length; i+=4){
+		for(var i = 0; i < dst.length; i+=4){
 
 
-          if(!isLabelMap){
+		    if(!isLabelMap){
 			
-          //var rIndex = Math.min(texture._rawData[i], this._colArrayHEAT.length - 1);
-          var rIndex = Math.min(texture._rawData[i], this._colArrayCURRENT.length - 1);
-          var rIndex = Math.max(rIndex, 0);
+			//var rIndex = Math.min(texture._rawData[i], this._colArrayHEAT.length - 1);
+			var rIndex = Math.min(texture._rawData[i], this._colArrayCURRENT.length - 1);
+			var rIndex = Math.max(rIndex, 0); 
 
-          //var gIndex = Math.min(texture._rawData[i+1], this._colArrayHEAT.length - 1);
-          var gIndex = Math.min(texture._rawData[i+1], this._colArrayCURRENT.length - 1);
-          var gIndex = Math.max(gIndex, 0);
+			//var gIndex = Math.min(texture._rawData[i+1], this._colArrayHEAT.length - 1);
+			var gIndex = Math.min(texture._rawData[i+1], this._colArrayCURRENT.length - 1);
+			var gIndex = Math.max(gIndex, 0);
 
-          //var bIndex = Math.min(texture._rawData[i+2], this._colArrayHEAT.length - 1);
-          var bIndex = Math.min(texture._rawData[i+2], this._colArrayCURRENT.length - 1);
-          var bIndex = Math.max(bIndex, 0);
+			//var bIndex = Math.min(texture._rawData[i+2], this._colArrayHEAT.length - 1);
+			var bIndex = Math.min(texture._rawData[i+2], this._colArrayCURRENT.length - 1);
+			var bIndex = Math.max(bIndex, 0);
 
-          dst[i] = this._colArrayCURRENT[rIndex][0];
-          dst[i+1] = this._colArrayCURRENT[gIndex][1];
-          dst[i+2] = this._colArrayCURRENT[bIndex][2];
-          }
-            else{
+			dst[i] = this._colArrayCURRENT[rIndex][0];
+			dst[i+1] = this._colArrayCURRENT[gIndex][1];
+			dst[i+2] = this._colArrayCURRENT[bIndex][2];
+		    }
 
-          //var rIndex = Math.min(texture._rawData[i], this._colArrayHEAT.length - 1);
-          var rIndex = Math.min(texture._rawData[i], this._labelArrayCURRENT.length - 1);
-          var rIndex = Math.max(rIndex, 0);
+		    else{
 
-          //var gIndex = Math.min(texture._rawData[i+1], this._colArrayHEAT.length - 1);
-          var gIndex = Math.min(texture._rawData[i+1], this._labelArrayCURRENT.length - 1);
-          var gIndex = Math.max(gIndex, 0);
+			//var rIndex = Math.min(texture._rawData[i], this._colArrayHEAT.length - 1);
+			var rIndex = Math.min(texture._rawData[i], this._labelArrayCURRENT.length - 1);
+			var rIndex = Math.max(rIndex, 0);
 
-          //var bIndex = Math.min(texture._rawData[i+2], this._colArrayHEAT.length - 1);
-          var bIndex = Math.min(texture._rawData[i+2], this._labelArrayCURRENT.length - 1);
-          var bIndex = Math.max(bIndex, 0);
+			//var gIndex = Math.min(texture._rawData[i+1], this._colArrayHEAT.length - 1);
+			var gIndex = Math.min(texture._rawData[i+1], this._labelArrayCURRENT.length - 1);
+			var gIndex = Math.max(gIndex, 0);
 
-          dst[i] = this._labelArrayCURRENT[rIndex][0];
-          dst[i+1] = this._labelArrayCURRENT[gIndex][1];
-          dst[i+2] = this._labelArrayCURRENT[bIndex][2];
+			//var bIndex = Math.min(texture._rawData[i+2], this._colArrayHEAT.length - 1);
+			var bIndex = Math.min(texture._rawData[i+2], this._labelArrayCURRENT.length - 1);
+			var bIndex = Math.max(bIndex, 0);
 
+			dst[i] = this._labelArrayCURRENT[rIndex][0];
+			dst[i+1] = this._labelArrayCURRENT[gIndex][1];
+			dst[i+2] = this._labelArrayCURRENT[bIndex][2];
 
-          if((texture._rawData[i] + 
-              texture._rawData[i + 1] + 
-              texture._rawData[i + 2]) == 0)
-              dst[i + 3] = 0;
-          //dst[i+3] = 0.5;
-            }
-        }
+			if((texture._rawData[i] + 
+			    texture._rawData[i + 1] + 
+			    texture._rawData[i + 2]) == 0)
+			    dst[i + 3] = 0;
+			//dst[i+3] = 0.5;
+		    }
+		}
 
         // use rawData rather than loading an imagefile
         this._context.texImage2D(this._context.TEXTURE_2D, 
-              0,
-              _texture_type, 
-              texture._rawDataWidth, 
-              texture._rawDataHeight,
-              0,
-              _texture_type,
-              this._context.UNSIGNED_BYTE,
-              texture._rawData); //LL: D.B. version has dst rather than texture._radData
+            0,
+            _texture_type,
+            texture._rawDataWidth,
+            texture._rawDataHeight,
+            0,
+            _texture_type,
+            this._context.UNSIGNED_BYTE,
+            dst);
 
       } else {
 
@@ -2574,12 +2573,11 @@ goog.exportSymbol('X.renderer3D.prototype.pick', X.renderer3D.prototype.pick);
 goog.exportSymbol('X.renderer3D.prototype.pick3d', X.renderer3D.prototype.pick3d);
 goog.exportSymbol('X.renderer3D.prototype.afterRender', X.renderer3D.prototype.afterRender);
 goog.exportSymbol('X.renderer3D.prototype.resize', X.renderer3D.prototype.resize);
-////D.B. - update
+// LL added from  D.B. version:
 goog.exportSymbol('X.renderer3D.prototype.update',
 		  X.renderer3D.prototype.update);
 goog.exportSymbol('X.renderer3D.prototype.setColortable',
 		  X.renderer3D.prototype.setColortable);
 goog.exportSymbol('X.renderer3D.prototype.setLabelmapColortable',
 		  X.renderer3D.prototype.setLabelmapColortable);
-goog.exportSymbol('X.renderer3D.prototype.resetTextures',
-		  X.renderer3D.prototype.resetTextures);
+goog.exportSymbol('X.renderer3D.prototype.resetTextures',X.renderer3D.prototype.resetTextures);

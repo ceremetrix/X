@@ -10,6 +10,7 @@
 
         // include all used X-classes here
         // this is only required when using the xtk-deps.js file
+        goog.require('X.renderer');
         goog.require('X.renderer3D');
         goog.require('X.renderer2D');
         goog.require('X.volume')
@@ -41,8 +42,14 @@
 
             // create a volume
             var volume = new X.volume();
-            volume.file = "/../Images/masked_pt01.nii";
-        
+            volume.file = "/../Images/Patient01.norm.nii";
+            
+            // Windowing doesn't seem to do much yet, but 
+            // thresholding does! LL 1.27.17
+            volume.windowLow = 0;
+            volume.windowHigh = 255;
+            //volume.lowerThreshold = 15;
+
             //alert(volume.color[1000,10,0]);
             //volume.maxColor = [1, .4, .1];
             //volume.minColor = [0, 0, .5];
@@ -65,7 +72,8 @@
                 r.add(volume);
                 //r.setColortable(2);
                 r.render(volume);
-
+                volume.windowLow = 0;
+                volume.windowHigh = 1705;    
                 //volume.minColor = [1,0,0];
                 //volume.maxColor = [0,0,1];
                 

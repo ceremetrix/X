@@ -852,7 +852,9 @@ X.parser.reslice2 = function(_sliceOrigin, _sliceXYSpacing, _sliceNormal, _color
 
   var _csize =  _cswidth*_csheight;
   var textureSize = 4 * _csize;
-  var textureForCurrentSlice = new Uint8Array(textureSize);
+  // LL change: so texture can have - values:
+  //var textureForCurrentSlice = new Uint8Array(textureSize);
+  var textureForCurrentSlice = new Int16Array(textureSize);
   var pixelTexture = new X.texture();
   pixelTexture._rawDataWidth = _cswidth;
   pixelTexture._rawDataHeight = _csheight;
