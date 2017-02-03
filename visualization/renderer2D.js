@@ -1244,6 +1244,10 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                     // all labels are shown
                     _label = [_labelData[_index], _labelData[_index + 1],
                             _labelData[_index + 2], _labelData[_index + 3]];
+                    // LL added:
+                    if(_label[0] == 0 && _label[1] == 0 && _label[2] == 0){
+                      _label[3] = 0;
+                    };
 
                 } else {
 
@@ -1251,9 +1255,13 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                     if (X.array.compare(_labelmapShowOnlyColor, _labelData, 0, _index,
                         4)) {
 
-                    // this label matches
-                    _label = [_labelData[_index], _labelData[_index + 1],
-                                _labelData[_index + 2], _labelData[_index + 3]];
+                      // this label matches
+                      _label = [_labelData[_index], _labelData[_index + 1],
+                                  _labelData[_index + 2], _labelData[_index + 3]];
+                      // LL added:
+                      if(_label[0] == 0 && _label[1] == 0 && _label[2] == 0){
+                        _label[3] = 0;
+                      };
 
                     }
 
@@ -1265,7 +1273,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
             // LL added else statement - why wasn't this here??
             // ans: apparently doesn't do anything, but yet to break anything
             else{
-                _color = [0,0,0,255];
+                _color = [0,0,0,0];
             }
 
             if(this._orientation == "X"){

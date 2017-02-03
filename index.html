@@ -13,7 +13,10 @@
         goog.require('X.renderer');
         goog.require('X.renderer3D');
         goog.require('X.renderer2D');
-        goog.require('X.volume')
+        goog.require('X.volume');
+        goog.require('X.slice');
+        goog.require('X.mesh');
+        goog.require('X.labelmap');
 
         window.onload = function () {
 
@@ -43,11 +46,20 @@
             // create a volume
             var volume = new X.volume();
             volume.file = "/../Images/Patient01.norm.nii";
-            
+            //volume.file = "/../Images/a-Patient01.norm.nii";
+            volume.labelmap.file = "/../Images/new_clusterID_img_Patient01.nii";
+            //volume.labelmap.file = "/../Images/a-Patient01.norm.nii";
+            volume.labelmap.colortable.file = "/../Images/colortable_copy.txt";
+            //volume.labelmap.opacity = 0.4;
+  
+            var mesh = new X.mesh();
+            mesh.file = "/../Images/clusters.vtk";
+            mesh.color = [0.7, 0.25, 0.25];
+            mesh.opacity = 1;
+
             // Windowing doesn't seem to do much yet, but 
             // thresholding does! LL 1.27.17
-            volume.windowLow = 0;
-            volume.windowHigh = 255;
+            
             //volume.lowerThreshold = 15;
 
             //alert(volume.color[1000,10,0]);
@@ -70,10 +82,13 @@
                 sliceZ.render();
 
                 r.add(volume);
+                r.add(mesh);
+                
                 //r.setColortable(2);
-                r.render(volume);
-                volume.windowLow = 0;
+                r.render();
+                volume.windowLow = 40;
                 volume.windowHigh = 1705;    
+                
                 //volume.minColor = [1,0,0];
                 //volume.maxColor = [0,0,1];
                 

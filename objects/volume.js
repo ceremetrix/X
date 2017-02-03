@@ -1267,7 +1267,7 @@ X.volume.prototype.__defineSetter__('yNormY', function(yNormY) {
  *
  * @public
  */
- X.volume.prototype.__defineGetter__('yNormY', function() {
+X.volume.prototype.__defineGetter__('yNormY', function() {
 
   return this._childrenInfo[1]._sliceNormal[1];
 
@@ -1371,7 +1371,7 @@ X.volume.prototype.__defineSetter__('zNormY', function(zNormY) {
  *
  * @public
  */
- X.volume.prototype.__defineGetter__('zNormY', function() {
+X.volume.prototype.__defineGetter__('zNormY', function() {
 
   return this._childrenInfo[2]._sliceNormal[1];
 
@@ -1381,7 +1381,7 @@ X.volume.prototype.__defineSetter__('zNormY', function(zNormY) {
  * Set value of normal Z of slice Z.
  *
  * @param {number} zNormZ Value between -1 and 1.
-*
+ *
  * @public
  */
 X.volume.prototype.__defineSetter__('zNormZ', function(zNormZ) {

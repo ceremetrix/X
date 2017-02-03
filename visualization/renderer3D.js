@@ -235,6 +235,40 @@ X.renderer3D = function() {
     'INTERMEDIATE_RENDERING': false
   };
 
+  // LL added: taken from renderer2d - not sure if it'll work:
+  /**
+   * The buffer of the current lower threshold.
+   *
+   * @type {!number}
+   * @protected
+   */
+  this._lowerThreshold = -1;
+
+  /**
+   * The buffer of the current upper threshold.
+   *
+   * @type {!number}
+   * @protected
+   */
+  this._upperThreshold = -1;
+
+  /**
+   * The buffer of the current w/l low value.
+   *
+   * @type {!number}
+   * @protected
+   */
+  this._windowLow = -1;
+
+  /**
+   * The buffer of the current w/l high value.
+   *
+   * @type {!number}
+   * @protected
+   */
+  this._windowHigh = -1;
+
+
 };
 // inherit from X.renderer
 goog.inherits(X.renderer3D, X.renderer);
@@ -881,11 +915,22 @@ X.renderer3D.prototype.update_ = function(object) {
 		var dst = new Uint8Array(texture._rawData); //LL: not Uint8Array
 		//console.log(dst);
 
-		for(var i = 0; i < dst.length; i+=4){
+    // LL added: variables for windowing/thresholding:
+    var _windowLow = object._volume._windowLow;
+    var _windowHigh = object._volume.windowHigh;
+    var _lowerThreshold = object._volume._lowerThreshold;
+    var _upperThreshold = object._volume._upperThreshold;
+    var _fac1 = object._volume._max - object._volume._min;
 
+		for(var i = 0; i < dst.length; i+=4){
+            // Get original intensities - maybe don't normalize in parser? -LL
+            var _intensity = (texture._rawData[i] / 255) * _fac1 + object._volume._min;
+            var _intensityR = (texture._rawData[i] / 255) * _fac1 + object._volume._min;
+            var _intensityG = (texture._rawData[i + 1] / 255) * _fac1 + object._volume._min;
+            var _intensityB = (texture._rawData[i + 2] / 255) * _fac1 + object._volume._min;
 
 		    if(!isLabelMap){
-			
+			/*
 			//var rIndex = Math.min(texture._rawData[i], this._colArrayHEAT.length - 1);
 			var rIndex = Math.min(texture._rawData[i], this._colArrayCURRENT.length - 1);
 			var rIndex = Math.max(rIndex, 0); 
@@ -896,15 +941,55 @@ X.renderer3D.prototype.update_ = function(object) {
 
 			//var bIndex = Math.min(texture._rawData[i+2], this._colArrayHEAT.length - 1);
 			var bIndex = Math.min(texture._rawData[i+2], this._colArrayCURRENT.length - 1);
-			var bIndex = Math.max(bIndex, 0);
+			var bIndex = Math.max(bIndex, 0);*/
 
-			dst[i] = this._colArrayCURRENT[rIndex][0];
-			dst[i+1] = this._colArrayCURRENT[gIndex][1];
-			dst[i+2] = this._colArrayCURRENT[bIndex][2];
+            // apply window/level:
+            var _window = _windowHigh - _windowLow;
+            var _level = _window/2 + _windowLow;
+
+            var _origIntensity = 0;
+            var _origIntensityR = 0;
+            var _origIntensityG = 0;
+            var _origIntensityB = 0;
+            var _origIntensityA = 0;
+
+            if(_intensity < _level - _window/2 ){
+                _origIntensity = 0;
+                _origIntensityR = 0;
+                _origIntensityG = 0;
+                _origIntensityB = 0;
+                _origIntensityA = 0; // should the alpha be 0 or 255?? -LL
+            }
+            else if(_intensity > _level + _window/2 ){
+                _origIntensity = 255;
+                _origIntensityR = 255;
+                _origIntensityG = 255;
+                _origIntensityB = 255;
+                _origIntensityA = 255;
+            }
+            else{
+                _origIntensity  = Math.round(255 * (_intensity - (_level - _window / 2))/_window);
+                _origIntensityR = Math.round(255 * (_intensityR - (_level - _window / 2))/_window);
+                _origIntensityG = Math.round(255 * (_intensityG - (_level - _window / 2))/_window);
+                _origIntensityB = Math.round(255 * (_intensityB - (_level - _window / 2))/_window);
+                _origIntensityA = 255 // alpha level = 255
+            }
+
+            // apply thresholding
+            if (_intensity >= _lowerThreshold && _intensity <= _upperThreshold) {
+
+                dst[i] = this._colArrayCURRENT[_origIntensityR][0];
+                dst[i+1] = this._colArrayCURRENT[_origIntensityG][1];
+                dst[i+2] = this._colArrayCURRENT[_origIntensityB][2];
+                dst[i+3] = _origIntensityA;
+            }
+            else {
+                dst[i] = dst[i+1] = dst[i+2] = dst[i+3] = 0;
+            }
 		    }
 
 		    else{
-
+            // ------ Case for the labelmap is not worked out yet; LL. ----------
 			//var rIndex = Math.min(texture._rawData[i], this._colArrayHEAT.length - 1);
 			var rIndex = Math.min(texture._rawData[i], this._labelArrayCURRENT.length - 1);
 			var rIndex = Math.max(rIndex, 0);
@@ -921,6 +1006,8 @@ X.renderer3D.prototype.update_ = function(object) {
 			dst[i+1] = this._labelArrayCURRENT[gIndex][1];
 			dst[i+2] = this._labelArrayCURRENT[bIndex][2];
 
+
+      
 			if((texture._rawData[i] + 
 			    texture._rawData[i + 1] + 
 			    texture._rawData[i + 2]) == 0)
