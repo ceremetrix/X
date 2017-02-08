@@ -1804,6 +1804,8 @@ X.renderer3D.prototype.render_ = function(picking, invoked) {
       .get(X.shaders.uniforms.SCALARSMINTHRESHOLD);
   var uScalarsMaxThreshold = uLocations
       .get(X.shaders.uniforms.SCALARSMAXTHRESHOLD);
+  // LL added for volume rendering:
+  var uVolumeRendering = uLocations.get(X.shaders.uniforms.VOLUMERENDERING);
   var uObjectOpacity = uLocations.get(X.shaders.uniforms.OBJECTOPACITY);
   var uLabelMapOpacity = uLocations.get(X.shaders.uniforms.LABELMAPOPACITY);
   var uLabelMapColor = uLocations.get(X.shaders.uniforms.LABELMAPCOLOR);
@@ -2094,7 +2096,7 @@ X.renderer3D.prototype.render_ = function(picking, invoked) {
 
         // opacity, only if volume rendering is active
         if (volume._volumeRendering) {
-
+          this._context.uniform1f(uVolumeRendering, true); // LL added
           this._context.uniform1f(uObjectOpacity, parseFloat(volume._opacity));
 
         } else if (labelmap && labelmap._visible) {

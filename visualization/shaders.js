@@ -176,6 +176,7 @@ X.shaders = function() {
   t2 += 'uniform bool useTexture;\n';
   t2 += 'uniform bool volumeTexture;\n';
   t2 += 'uniform bool useLabelMapTexture;\n'; // which activates textureSampler2
+  t2 += 'uniform bool volumeRendering;\n'; // LL added
   t2 += 'uniform sampler2D textureSampler;\n';
   t2 += 'uniform sampler2D textureSampler2;\n';
   t2 += 'uniform float objectOpacity;\n';
@@ -246,14 +247,22 @@ X.shaders = function() {
   t2 += '   }\n';
   // threshold functionality for 1-channel volumes
   t2 += '   if (volumeTexture) {\n';
-  /*t2 += '     float _volumeLowerThreshold = (volumeLowerThreshold - volumeScalarMin)/ (volumeScalarMax - volumeScalarMin);\n';
+  t2 += '     float _volumeLowerThreshold = (volumeLowerThreshold - volumeScalarMin)/ (volumeScalarMax - volumeScalarMin);\n';
   t2 += '     float _volumeUpperThreshold = (volumeUpperThreshold - volumeScalarMin)/ (volumeScalarMax - volumeScalarMin);\n';
-  t2 += '     if (texture1.r < _volumeLowerThreshold ||\n';
+  t2 += '     if (volumeRendering) {\n'; // LL added: if 3d then apply the old way
+  t2 += '       if (texture1.r < _volumeLowerThreshold ||\n';
   t2 += '         texture1.r > _volumeUpperThreshold ||\n';
   t2 += '         texture1.a == 0.0 ) {\n';
-  t2 += '       discard;\n';
-  t2 += '     };\n';*/
-  t2 += '   };\n';
+  t2 += '           discard;\n';  // <-- THE SOURCE OF THE HOLES!!!!
+  t2 += '       }\n'
+  t2 += '     } else {\n';
+  t2 += '         if ((texture1.r < _volumeLowerThreshold && texture1.g < _volumeLowerThreshold && texture1.b < _volumeLowerThreshold)||\n';
+  t2 += '             (texture1.r > _volumeUpperThreshold && texture1.g > _volumeUpperThreshold && texture1.b > _volumeUpperThreshold)||\n';
+  t2 += '             texture1.a == 0.0 ) {\n';
+  t2 += '           discard;\n';
+  t2 += '         };\n';  //  Added conditions for g and b channels -LL
+  t2 += '     }\n';
+  t2 += '   }\n';
   t2 += '   gl_FragColor = textureSum;\n';
   t2 += '   gl_FragColor.a = objectOpacity;\n';
   t2 += ' } else {\n';
@@ -347,7 +356,9 @@ X.shaders.uniforms = {
   VOLUMESCALARMAXCOLOR: 'volumeScalarMaxColor',
   VOLUMEWINDOWLOW: 'volumeWindowLow',
   VOLUMEWINDOWHIGH: 'volumeWindowHigh',
-  VOLUMETEXTURE: 'volumeTexture'
+  VOLUMETEXTURE: 'volumeTexture',
+  //LL added for volume rendering:
+  VOLUMERENDERING: 'volumeRendering'
 };
 
 
