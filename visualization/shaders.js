@@ -246,13 +246,13 @@ X.shaders = function() {
   t2 += '   }\n';
   // threshold functionality for 1-channel volumes
   t2 += '   if (volumeTexture) {\n';
-  t2 += '     float _volumeLowerThreshold = (volumeLowerThreshold - volumeScalarMin)/ (volumeScalarMax - volumeScalarMin);\n';
+  /*t2 += '     float _volumeLowerThreshold = (volumeLowerThreshold - volumeScalarMin)/ (volumeScalarMax - volumeScalarMin);\n';
   t2 += '     float _volumeUpperThreshold = (volumeUpperThreshold - volumeScalarMin)/ (volumeScalarMax - volumeScalarMin);\n';
   t2 += '     if (texture1.r < _volumeLowerThreshold ||\n';
   t2 += '         texture1.r > _volumeUpperThreshold ||\n';
   t2 += '         texture1.a == 0.0 ) {\n';
   t2 += '       discard;\n';
-  t2 += '     };\n';
+  t2 += '     };\n';*/
   t2 += '   };\n';
   t2 += '   gl_FragColor = textureSum;\n';
   t2 += '   gl_FragColor.a = objectOpacity;\n';
