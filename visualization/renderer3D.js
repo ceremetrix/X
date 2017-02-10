@@ -659,15 +659,27 @@ X.renderer3D.prototype.update_ = function(object) {
   // check if object already existed..
   var existed = false;
 
-  // LL added: check to see if its a change in 3d VolumeRendeing; if so, update shader:
-  if (this._context.getUniform(this._shaderProgram, this._uniformLocations.get("volumeRendering"))
-      != volume._volumeRendering){
-        this._context.uniform1i(this._uniformLocations.get(X.shaders.uniforms.VOLUMERENDERING), volume._volumeRendering);
-      }
-
-  if(!goog.isDefAndNotNull(object)){
+ if(!goog.isDefAndNotNull(object)){
     return;
   }
+
+  // LL added: check to see if its a change in 3d VolumeRendeing; if so, update shader: THIS IS HACKED!!
+  /*if(goog.isDefAndNotNull(volume)){
+    if (this._context.getUniform(this._shaderProgram, this._uniformLocations.get("volumeRendering"))
+        != volume._volumeRendering){
+          this._context.uniform1i(this._uniformLocations.get(X.shaders.uniforms.VOLUMERENDERING), volume._volumeRendering);
+        }
+  }*/
+
+  if(goog.isDefAndNotNull(object)){
+    if (this._context.getUniform(this._shaderProgram, this._uniformLocations.get("volumeRendering"))
+        != object._volumeRendering){
+          this._context.uniform1i(this._uniformLocations.get(X.shaders.uniforms.VOLUMERENDERING), object._volumeRendering);
+        }
+  }
+
+
+ 
   if (this.get(object._id)) {
     // this means, we are updating
     existed = true;
