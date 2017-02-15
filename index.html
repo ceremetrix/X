@@ -45,17 +45,29 @@
 
             // create a volume
             var volume = new X.volume();
-            volume.file = "/../Images/Patient01.norm.nii";
-            //volume.file = "/../Images/a-Patient01.norm.nii";
-            volume.labelmap.file = "/../Images/new_clusterID_img_Patient01.nii";
-            //volume.labelmap.file = "/../Images/a-Patient01.norm.nii";
-            volume.labelmap.colortable.file = "/../Images/colortable_copy.txt";
-            //volume.labelmap.opacity = 0.4;
+            //volume.file = "/../Images/Patient01.norm.nii";
+            
+            volume.file = "/../Images/MRI_Template.nii"; // MRI file
+            //volume.labelmap.file = "/../Images/new_clusterID_img_Patient01.nii";
+            //volume.labelmap.file = "/../Images/Patient01.norm.nii";
+            //volume.labelmap.colortable.file = "/../Images/MRI_colorTable.txt";
+            //volume.labelmap.colortable.file  = "/../Images/colortable_copy.txt";
+            //volume.labelmap.opacity = 0.6;
+            volume.opacity = 0.3;
   
+            var volume2 = new X.volume();
+            volume2.file = "/../Images/Patient01.norm.nii"
+            //volume2.opacity = 0.3; 
+
             var mesh = new X.mesh();
             mesh.file = "/../Images/clusters.vtk";
             mesh.color = [0.7, 0.25, 0.25];
             mesh.opacity = 1;
+
+            var mesh2 = new X.mesh();
+            mesh2.file = "/../Images/clusters_NEW.vtk";
+            mesh2.color = [1, 0.4, 0.7];
+            mesh2.opacity = 1;
 
             // Windowing doesn't seem to do much yet, but 
             // thresholding does! LL 1.27.17
@@ -70,24 +82,37 @@
             // we choose the sliceX here, since this should work also on
             // non-webGL-friendly devices like Safari on iOS
             sliceX.add(volume);
-
+            //sliceX.add(volume2);
+            //sliceX.setColortable(0);
             // start the loading/rendering
             sliceX.render();
 
             sliceX.onShowtime = function () {
 
                 sliceY.add(volume);
+                //sliceY.add(volume2);
                 sliceY.render();
                 sliceZ.add(volume);
+                //sliceZ.add(volume2);
                 sliceZ.render();
 
                 r.add(volume);
-                r.add(mesh);
+                r.add(volume2);
+                //r.setColortable(0);
+                //r.setLabelmapColortable(0);
+                //r.add(mesh);
+                //r.add(mesh2);
                 
                 //r.setColortable(2);
                 r.render();
-                volume.windowLow = 40;
-                volume.windowHigh = 1705;    
+                //volume.lowerThreshold = 2;
+                //volume.opacity = 0.1;
+                //volume.volumeRendering = true;
+                volume2.windowLow = 40;
+                volume2.windowHigh = 1705;
+                volume2.lowerThreshold = 40;
+                //volume.volumeRendering = true;
+                //volume.opacity = 0.1;    
                 
                 //volume.minColor = [1,0,0];
                 //volume.maxColor = [0,0,1];

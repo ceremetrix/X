@@ -204,7 +204,7 @@ X.shaders = function() {
   t2 += ' }\n';
   // in picking mode, we don't want any extras but just the plain color
   t2 += ' if (usePicking) {\n';
-  t2 += '   gl_FragColor = vec4(fragmentColor, 1.0);\n';
+  t2 += '   gl_FragColor = vec4(fragmentColor, 1.0);\n'; //objectOpacity instead of 1?? -LL
   t2 += ' } else if (useTexture) {\n';
   t2 += '   vec4 texture1 = texture2D(textureSampler,fragmentTexturePos);\n';
   t2 += '   vec4 textureSum = texture1;\n';
@@ -219,6 +219,7 @@ X.shaders = function() {
   t2 += '     textureSum.r = (textureSum.r - _windowLow)/(_windowHigh - _windowLow);\n';
   t2 += '     textureSum.g = (textureSum.g - _windowLow)/(_windowHigh - _windowLow);\n';
   t2 += '     textureSum.b = (textureSum.b - _windowLow)/(_windowHigh - _windowLow);\n';
+  //t2 += '     textureSum.a = objectOpacity; \n';  // transparency for multiple volumes?? nope - commenting out sets transparancy correct
   // LL change: t2 += '     textureSum = vec4((textureSum.r - _minrange)/fac,1);\n';
   // map volume scalars to a linear color gradient
   // LL change: t2 += '     textureSum = textureSum.r * vec4(volumeScalarMaxColor,1) + (1.0 - textureSum.r) * vec4(volumeScalarMinColor,1);\n';
@@ -264,7 +265,7 @@ X.shaders = function() {
   t2 += '     }\n';
   t2 += '   }\n';
   t2 += '   gl_FragColor = textureSum;\n';
-  t2 += '   gl_FragColor.a = objectOpacity;\n';
+  //t2 += '   gl_FragColor.a = objectOpacity;\n';  // Commenting out sets opacity correctly except for the initial loading
   t2 += ' } else {\n';
   // configure advanced lighting
   t2 += '   vec3 nNormal = normalize(fTransformedVertexNormal);\n';

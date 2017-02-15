@@ -1237,19 +1237,21 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
 
                 if (_currentLabelMap) {
 
-                // we have a label map here
-                // check if all labels are shown or only one
-                if (_labelmapShowOnlyColor[3] == -255) {
+                  // we have a label map here
+                  var _labelmapOpacity = _volume._labelmap._opacity; // LL added
+                  var _labelOpacity = _labelmapOpacity * _labelData[_index+ 3]; // LL added
+                  // check if all labels are shown or only one
+                  if (_labelmapShowOnlyColor[3] == -255) {
 
-                    // all labels are shown
-                    _label = [_labelData[_index], _labelData[_index + 1],
-                            _labelData[_index + 2], _labelData[_index + 3]];
-                    // LL added:
-                    if(_label[0] == 0 && _label[1] == 0 && _label[2] == 0){
-                      _label[3] = 0;
-                    };
+                      // all labels are shown
+                      _label = [_labelData[_index], _labelData[_index + 1],
+                              _labelData[_index + 2], _labelOpacity];
+                      // LL added:
+                      if(_label[0] == 0 && _label[1] == 0 && _label[2] == 0){
+                        _label[3] = 0;
+                      };
 
-                } else {
+                  } else {
 
                     // show only the label which matches in color
                     if (X.array.compare(_labelmapShowOnlyColor, _labelData, 0, _index,
@@ -1257,7 +1259,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
 
                       // this label matches
                       _label = [_labelData[_index], _labelData[_index + 1],
-                                  _labelData[_index + 2], _labelData[_index + 3]];
+                                  _labelData[_index + 2], _labelOpacity];
                       // LL added:
                       if(_label[0] == 0 && _label[1] == 0 && _label[2] == 0){
                         _label[3] = 0;
@@ -1265,7 +1267,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
 
                     }
 
-                }
+                  }
 
                 }
 

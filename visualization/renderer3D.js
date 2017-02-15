@@ -435,7 +435,7 @@ X.renderer3D.prototype.init = function() {
   // attached to this renderer since we check for these
   var _defaultShaders = new X.shaders();
   this.addShaders(_defaultShaders);
-
+  this.update();
 };
 
 // LL added from D.B. version: ---------------
@@ -664,19 +664,19 @@ X.renderer3D.prototype.update_ = function(object) {
   }
 
   // LL added: check to see if its a change in 3d VolumeRendeing; if so, update shader: THIS IS HACKED!!
-  /*if(goog.isDefAndNotNull(volume)){
-    if (this._context.getUniform(this._shaderProgram, this._uniformLocations.get("volumeRendering"))
-        != volume._volumeRendering){
-          this._context.uniform1i(this._uniformLocations.get(X.shaders.uniforms.VOLUMERENDERING), volume._volumeRendering);
-        }
-  }*/
+      /*if(goog.isDefAndNotNull(volume)){
+        if (this._context.getUniform(this._shaderProgram, this._uniformLocations.get("volumeRendering"))
+            != volume._volumeRendering){
+              this._context.uniform1i(this._uniformLocations.get(X.shaders.uniforms.VOLUMERENDERING), volume._volumeRendering);
+            }
+      }*/
 
-  if(goog.isDefAndNotNull(object)){
-    if (this._context.getUniform(this._shaderProgram, this._uniformLocations.get("volumeRendering"))
-        != object._volumeRendering){
-          this._context.uniform1i(this._uniformLocations.get(X.shaders.uniforms.VOLUMERENDERING), object._volumeRendering);
-        }
-  }
+      if(goog.isDefAndNotNull(object)){
+        if (this._context.getUniform(this._shaderProgram, this._uniformLocations.get("volumeRendering"))
+            != object._volumeRendering){
+              this._context.uniform1i(this._uniformLocations.get(X.shaders.uniforms.VOLUMERENDERING), object._volumeRendering);
+            }
+      }
 
 
  
@@ -939,6 +939,7 @@ X.renderer3D.prototype.update_ = function(object) {
     var _lowerThreshold = object._volume._lowerThreshold;
     var _upperThreshold = object._volume._upperThreshold;
     var _fac1 = object._volume._max - object._volume._min;
+    var _volumeOpacity = object._volume._opacity;
 
 		for(var i = 0; i < dst.length; i+=4){
             // Get original intensities - maybe don't normalize in parser? -LL
@@ -990,7 +991,12 @@ X.renderer3D.prototype.update_ = function(object) {
                 _origIntensityR = Math.round(255 * (_intensityR - (_level - _window / 2))/_window);
                 _origIntensityG = Math.round(255 * (_intensityG - (_level - _window / 2))/_window);
                 _origIntensityB = Math.round(255 * (_intensityB - (_level - _window / 2))/_window);
-                _origIntensityA = 255 // alpha level = 255
+                if (goog.isDefAndNotNull(_volumeOpacity)){  // LL added for multiple volumes
+                    _origIntensityA = 255 * _volumeOpacity; 
+                }
+                else{
+                    _origIntensityA = 255;
+                }
             }
 
             // apply thresholding
@@ -1008,29 +1014,29 @@ X.renderer3D.prototype.update_ = function(object) {
 
 		    else{
             // ------ Case for the labelmap is not worked out yet; LL. ----------
-			//var rIndex = Math.min(texture._rawData[i], this._colArrayHEAT.length - 1);
-			var rIndex = Math.min(texture._rawData[i], this._labelArrayCURRENT.length - 1);
-			var rIndex = Math.max(rIndex, 0);
+            //var rIndex = Math.min(texture._rawData[i], this._colArrayHEAT.length - 1);
+            var rIndex = Math.min(texture._rawData[i], this._labelArrayCURRENT.length - 1);
+            var rIndex = Math.max(rIndex, 0);
 
-			//var gIndex = Math.min(texture._rawData[i+1], this._colArrayHEAT.length - 1);
-			var gIndex = Math.min(texture._rawData[i+1], this._labelArrayCURRENT.length - 1);
-			var gIndex = Math.max(gIndex, 0);
+            //var gIndex = Math.min(texture._rawData[i+1], this._colArrayHEAT.length - 1);
+            var gIndex = Math.min(texture._rawData[i+1], this._labelArrayCURRENT.length - 1);
+            var gIndex = Math.max(gIndex, 0);
 
-			//var bIndex = Math.min(texture._rawData[i+2], this._colArrayHEAT.length - 1);
-			var bIndex = Math.min(texture._rawData[i+2], this._labelArrayCURRENT.length - 1);
-			var bIndex = Math.max(bIndex, 0);
+            //var bIndex = Math.min(texture._rawData[i+2], this._colArrayHEAT.length - 1);
+            var bIndex = Math.min(texture._rawData[i+2], this._labelArrayCURRENT.length - 1);
+            var bIndex = Math.max(bIndex, 0);
 
-			dst[i] = this._labelArrayCURRENT[rIndex][0];
-			dst[i+1] = this._labelArrayCURRENT[gIndex][1];
-			dst[i+2] = this._labelArrayCURRENT[bIndex][2];
+            dst[i] = this._labelArrayCURRENT[rIndex][0];
+            dst[i+1] = this._labelArrayCURRENT[gIndex][1];
+            dst[i+2] = this._labelArrayCURRENT[bIndex][2];
 
 
-      
-			if((texture._rawData[i] + 
-			    texture._rawData[i + 1] + 
-			    texture._rawData[i + 2]) == 0)
-			    dst[i + 3] = 0;
-			//dst[i+3] = 0.5;
+            
+            if((texture._rawData[i] + 
+                texture._rawData[i + 1] + 
+                texture._rawData[i + 2]) == 0)
+                dst[i + 3] = 0;
+            //dst[i+3] = 0.5;
 		    }
 		}
 
@@ -1059,12 +1065,12 @@ X.renderer3D.prototype.update_ = function(object) {
       this._context.texParameteri(this._context.TEXTURE_2D,
           this._context.TEXTURE_WRAP_T, this._context.CLAMP_TO_EDGE);
 
-      // for labelmaps, we use NEAREST NEIGHBOR filtering
+      // for labelmaps, we use NEAREST NEIGHBOR filtering  <-- Source of pixelated look??? LL
       if (isLabelMap) {
         this._context.texParameteri(this._context.TEXTURE_2D,
-            this._context.TEXTURE_MAG_FILTER, this._context.NEAREST);
+            this._context.TEXTURE_MAG_FILTER, this._context.LINEAR/*this._context.NEAREST*/);
         this._context.texParameteri(this._context.TEXTURE_2D,
-            this._context.TEXTURE_MIN_FILTER, this._context.NEAREST);
+            this._context.TEXTURE_MIN_FILTER, this._context.LINEAR/*this._context.NEAREST*/);
       } else {
         this._context.texParameteri(this._context.TEXTURE_2D,
             this._context.TEXTURE_MAG_FILTER, this._context.LINEAR);

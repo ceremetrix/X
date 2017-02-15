@@ -1032,7 +1032,7 @@ X.renderer = function() {
 
 
 
-  this._colArrayDEFAULT = [[0, 0, 0, 0,]
+  this._colArrayDEFAULT = [[0, 0, 0, 0,],
           [1, 1, 1, 255],
           [2, 2, 2, 255],
           [3, 3, 3, 255],
@@ -1294,7 +1294,8 @@ X.renderer = function() {
   //this._colArrayCURRENT = this._colArrayDEFAULT;
   //LL: change so default is heat-map:
   this._colArrayCURRENT = this._colArrayHEAT;
-  this._labelArrayCURRENT = this._colArrayIDS;
+  //this._labelArrayCURRENT = this._colArrayIDS;
+  this._labelArrayCURRENT = this._colArrayDEFAULT;
 
   this._colArrayChanged = false;
   // ---------------------
