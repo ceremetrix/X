@@ -935,7 +935,7 @@ X.renderer3D.prototype.update_ = function(object) {
 
     // LL added: variables for windowing/thresholding:
     var _windowLow = object._volume._windowLow;
-    var _windowHigh = object._volume.windowHigh;
+    var _windowHigh = object._volume._windowHigh;
     var _lowerThreshold = object._volume._lowerThreshold;
     var _upperThreshold = object._volume._upperThreshold;
     var _fac1 = object._volume._max - object._volume._min;
@@ -949,19 +949,6 @@ X.renderer3D.prototype.update_ = function(object) {
             var _intensityB = (texture._rawData[i + 2] / 255) * _fac1 + object._volume._min;
 
 		    if(!isLabelMap){
-			/*
-			//var rIndex = Math.min(texture._rawData[i], this._colArrayHEAT.length - 1);
-			var rIndex = Math.min(texture._rawData[i], this._colArrayCURRENT.length - 1);
-			var rIndex = Math.max(rIndex, 0); 
-
-			//var gIndex = Math.min(texture._rawData[i+1], this._colArrayHEAT.length - 1);
-			var gIndex = Math.min(texture._rawData[i+1], this._colArrayCURRENT.length - 1);
-			var gIndex = Math.max(gIndex, 0);
-
-			//var bIndex = Math.min(texture._rawData[i+2], this._colArrayHEAT.length - 1);
-			var bIndex = Math.min(texture._rawData[i+2], this._colArrayCURRENT.length - 1);
-			var bIndex = Math.max(bIndex, 0);*/
-
             // apply window/level:
             var _window = _windowHigh - _windowLow;
             var _level = _window/2 + _windowLow;
@@ -1068,9 +1055,9 @@ X.renderer3D.prototype.update_ = function(object) {
       // for labelmaps, we use NEAREST NEIGHBOR filtering  <-- Source of pixelated look??? LL
       if (isLabelMap) {
         this._context.texParameteri(this._context.TEXTURE_2D,
-            this._context.TEXTURE_MAG_FILTER, this._context.LINEAR/*this._context.NEAREST*/);
+            this._context.TEXTURE_MAG_FILTER, this._context.LINEAR); //changed from NEAREST
         this._context.texParameteri(this._context.TEXTURE_2D,
-            this._context.TEXTURE_MIN_FILTER, this._context.LINEAR/*this._context.NEAREST*/);
+            this._context.TEXTURE_MIN_FILTER, this._context.LINEAR); //changed from NEAREST
       } else {
         this._context.texParameteri(this._context.TEXTURE_2D,
             this._context.TEXTURE_MAG_FILTER, this._context.LINEAR);

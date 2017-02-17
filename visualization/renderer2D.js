@@ -587,7 +587,7 @@ X.renderer2D.prototype.setLabelmapColortable = function(index) {
     this._labelArrayChanged =  true;
 
 };
-/*
+
 //---------------------------------
 
 /**
@@ -1020,464 +1020,450 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
 
   //LL added from D.B. version: puts in a big if(volume) statement:
   if(_volume){
-      if(this.loader){
+      
 
-        var _currentSlice = null;
-        if (this._orientationIndex == 0) {
+    var _currentSlice = null;
+    if (this._orientationIndex == 0) {
 
-            _currentSlice = _volume['indexX'];
+        _currentSlice = _volume['indexX'];
 
-        } else if (this._orientationIndex == 1) {
+    } else if (this._orientationIndex == 1) {
 
-            _currentSlice = _volume['indexY'];
+        _currentSlice = _volume['indexY'];
 
-        } else {
+    } else {
 
-            _currentSlice = _volume['indexZ'];
+        _currentSlice = _volume['indexZ'];
 
+    }
+    
+    //if slice do not exist yet, we have to set slice dimensions
+    var _width2 = this._slices[parseInt(_currentSlice, 10)]._iWidth;
+    var _height2 = this._slices[parseInt(_currentSlice, 10)]._iHeight;
+    // spacing
+    this._sliceWidthSpacing = this._slices[parseInt(_currentSlice, 10)]._widthSpacing;
+    this._sliceHeightSpacing = this._slices[parseInt(_currentSlice, 10)]._heightSpacing;
+
+    // .. and store the dimensions
+    this._sliceWidth = _width2;
+    this._sliceHeight = _height2;
+    //
+    // grab the camera settings
+
+    //
+    // viewport size
+    var _width = this._width;
+    var _height = this._height;
+
+    // first grab the view matrix which is 4x4 in favor of the 3D renderer
+    var _view = this._camera._view;
+
+    // clear the canvas
+    this._context.save();
+    this._context.clearRect(-_width, -_height, 2 * _width, 2 * _height);
+    this._context.restore();
+
+    // transform the canvas according to the view matrix
+    // .. this includes zoom
+    this._normalizedScale = Math.max(_view[14], 0.0001);
+
+    this._context.setTransform(this._normalizedScale, 0, 0, this._normalizedScale, 0, 0);
+
+    // .. and pan
+    // we need to flip y here
+    var _x = 1 * _view[12];
+    var _y = -1 * _view[13];
+    //
+    // grab the volume and current slice
+    //
+
+    var _labelmap = _volume._labelmap;
+    var _labelmapShowOnlyColor = null;
+
+    if (_labelmap) {
+
+        // since there is a labelmap, get the showOnlyColor property
+        _labelmapShowOnlyColor = _volume._labelmap._showOnlyColor;
+
+    }
+
+    // .. here is the current slice
+    var _slice = this._slices[parseInt(_currentSlice, 10)];
+    var _sliceData = _slice._texture._rawData;
+    var _currentLabelMap = _slice._labelmap;
+    var _labelData = null;
+    if (_currentLabelMap) {
+
+        _labelData = _currentLabelMap._rawData;
+
+    }
+
+    var _sliceWidth = this._sliceWidth;
+    var _sliceHeight = this._sliceHeight;
+
+    // LL added from D.B. version:
+    var _currentSliceId = _slice._id;
+
+    //
+    // FRAME BUFFERING
+    //
+    var _imageFBContext = this._frameBufferContext;
+    var _labelFBContext = this._labelFrameBufferContext;
+
+    // grab the current pixels
+    var _imageData = _imageFBContext
+        .getImageData(0, 0, _sliceWidth, _sliceHeight);
+    var _labelmapData = _labelFBContext.getImageData(0, 0, _sliceWidth,
+        _sliceHeight);
+    var _pixels = _imageData.data;
+    var _labelPixels = _labelmapData.data;
+    var _pixelsLength = _pixels.length;
+
+    // threshold values
+    var _maxScalarRange = _volume._max;
+    var _lowerThreshold = _volume._lowerThreshold;
+    var _upperThreshold = _volume._upperThreshold;
+    var _windowLow = _volume._windowLow;
+    var _windowHigh = _volume._windowHigh;
+
+    // caching mechanism
+    // we need to redraw the pixels only
+    // - if the _currentSlice has changed
+    // - if the threshold has changed
+    // - if the window/level has changed
+    // - the labelmap show only color has changed
+    // LL from D.B.: redraw if colArray or currentSliceId has changed
+    var _redraw_required = (this._colArrayChanged == true ||
+        this._labelArrayChanged == true ||
+        this._currentSliceId != _currentSliceId ||
+        this._currentSlice != _currentSlice ||
+        this._lowerThreshold != _lowerThreshold ||
+        this._upperThreshold != _upperThreshold ||
+        this._windowLow != _windowLow || 
+        this._windowHigh != _windowHigh || 
+        (_labelmapShowOnlyColor && !X.array
+        .compare(_labelmapShowOnlyColor, this._labelmapShowOnlyColor, 0, 0, 4)));
+
+    if (_redraw_required) {
+        // update FBs with new size
+        // has to be there, not sure why, too slow to be in main loop?
+        var _frameBuffer = this._frameBuffer;
+        _frameBuffer.width = _width2;
+        _frameBuffer.height = _height2;
+
+        var _frameBuffer2 = this._labelFrameBuffer;
+        _frameBuffer2.width = _width2;
+        _frameBuffer2.height = _height2;
+
+        // loop through the pixels and draw them to the invisible canvas
+        // from bottom right up
+        // also apply thresholding
+        var _index = 0;
+        do {
+
+        // default color and label is just transparent
+        var _color = [0, 0, 0, 0];
+        var _label = [0, 0, 0, 0];
+        var _fac1 = _volume._max - _volume._min; // LL: WTF is this!!
+
+        // grab the pixel intensity
+        // slice data is normalized (probably shouldn't ?)
+        // de-normalize it (get real value)
+        //
+        // LL custom code, similar to D.B. but important differences:
+        //
+        var _intensity = (_sliceData[_index] / 255) * _fac1 + _volume._min;
+        var _intensityR = (_sliceData[_index] / 255) * _fac1 + _volume._min;
+        var _intensityG = (_sliceData[_index + 1] / 255) * _fac1 + _volume._min;
+        var _intensityB = (_sliceData[_index + 2] / 255) * _fac1 + _volume._min;
+        var _intensityA = (_sliceData[_index + 3] / 255) * _fac1 + _volume._min;
+
+        // apply window/level
+        var _window = _windowHigh - _windowLow;
+        var _level = _window/2 + _windowLow;
+
+        var _origIntensity = 0;
+        var _origIntensityR = 0;
+        var _origIntensityG = 0;
+        var _origIntensityB = 0;
+        var _origIntensityA = 0;
+
+        if(_intensity < _level - _window/2 ){
+            _origIntensity = 0;
+            _origIntensityR = 0;
+            _origIntensityG = 0;
+            _origIntensityB = 0;
+            _origIntensityA = 0; // should the alpha be 0 or 255?? -LL
         }
-        
-        //if slice do not exist yet, we have to set slice dimensions
-        var _width2 = this._slices[parseInt(_currentSlice, 10)]._iWidth;
-        var _height2 = this._slices[parseInt(_currentSlice, 10)]._iHeight;
-        // spacing
-        this._sliceWidthSpacing = this._slices[parseInt(_currentSlice, 10)]._widthSpacing;
-        this._sliceHeightSpacing = this._slices[parseInt(_currentSlice, 10)]._heightSpacing;
-
-        // .. and store the dimensions
-        this._sliceWidth = _width2;
-        this._sliceHeight = _height2;
-        //
-        // grab the camera settings
-
-        //
-        // viewport size
-        var _width = this._width;
-        var _height = this._height;
-
-        // first grab the view matrix which is 4x4 in favor of the 3D renderer
-        var _view = this._camera._view;
-
-        // clear the canvas
-        this._context.save();
-        this._context.clearRect(-_width, -_height, 2 * _width, 2 * _height);
-        this._context.restore();
-
-        // transform the canvas according to the view matrix
-        // .. this includes zoom
-        this._normalizedScale = Math.max(_view[14], 0.0001);
-
-        this._context.setTransform(this._normalizedScale, 0, 0, this._normalizedScale, 0, 0);
-
-        // .. and pan
-        // we need to flip y here
-        var _x = 1 * _view[12];
-        var _y = -1 * _view[13];
-        //
-        // grab the volume and current slice
-        //
-
-        var _labelmap = _volume._labelmap;
-        var _labelmapShowOnlyColor = null;
-
-        if (_labelmap) {
-
-            // since there is a labelmap, get the showOnlyColor property
-            _labelmapShowOnlyColor = _volume._labelmap._showOnlyColor;
-
+        else if(_intensity > _level + _window/2 ){
+            _origIntensity = 255;
+            _origIntensityR = 255;
+            _origIntensityG = 255;
+            _origIntensityB = 255;
+            _origIntensityA = 255;
+        }
+        else{
+            _origIntensity  = Math.round(255 * (_intensity - (_level - _window / 2))/_window);
+            _origIntensityR = Math.round(255 * (_intensityR - (_level - _window / 2))/_window);
+            _origIntensityG = Math.round(255 * (_intensityG - (_level - _window / 2))/_window);
+            _origIntensityB = Math.round(255 * (_intensityB - (_level - _window / 2))/_window);
+            _origIntensityA = 255 // alpha level = 255
         }
 
-        // .. here is the current slice
-        var _slice = this._slices[parseInt(_currentSlice, 10)];
-        var _sliceData = _slice._texture._rawData;
-        var _currentLabelMap = _slice._labelmap;
-        var _labelData = null;
-        if (_currentLabelMap) {
+        // apply thresholding
+        if (_intensity >= _lowerThreshold && _intensity <= _upperThreshold) {
 
-            _labelData = _currentLabelMap._rawData;
+            // current intensity is inside the threshold range so use the real
+            // intensity
 
-        }
-
-        var _sliceWidth = this._sliceWidth;
-        var _sliceHeight = this._sliceHeight;
-
-        // LL added from D.B. version:
-        var _currentSliceId = _slice._id;
-
-        //
-        // FRAME BUFFERING
-        //
-        var _imageFBContext = this._frameBufferContext;
-        var _labelFBContext = this._labelFrameBufferContext;
-
-        // grab the current pixels
-        var _imageData = _imageFBContext
-            .getImageData(0, 0, _sliceWidth, _sliceHeight);
-        var _labelmapData = _labelFBContext.getImageData(0, 0, _sliceWidth,
-            _sliceHeight);
-        var _pixels = _imageData.data;
-        var _labelPixels = _labelmapData.data;
-        var _pixelsLength = _pixels.length;
-
-        // threshold values
-        var _maxScalarRange = _volume._max;
-        var _lowerThreshold = _volume._lowerThreshold;
-        var _upperThreshold = _volume._upperThreshold;
-        var _windowLow = _volume._windowLow;
-        var _windowHigh = _volume._windowHigh;
-
-        // caching mechanism
-        // we need to redraw the pixels only
-        // - if the _currentSlice has changed
-        // - if the threshold has changed
-        // - if the window/level has changed
-        // - the labelmap show only color has changed
-        // LL from D.B.: redraw if colArray or currentSliceId has changed
-        var _redraw_required = (this._colArrayChanged == true ||
-            this._labelArrayChanged == true ||
-            this._currentSliceId != _currentSliceId ||
-            this._currentSlice != _currentSlice ||
-            this._lowerThreshold != _lowerThreshold ||
-            this._upperThreshold != _upperThreshold ||
-            this._windowLow != _windowLow || 
-            this._windowHigh != _windowHigh || 
-            (_labelmapShowOnlyColor && !X.array
-            .compare(_labelmapShowOnlyColor, this._labelmapShowOnlyColor, 0, 0, 4)));
-
-        if (_redraw_required) {
-            // update FBs with new size
-            // has to be there, not sure why, too slow to be in main loop?
-            var _frameBuffer = this._frameBuffer;
-            _frameBuffer.width = _width2;
-            _frameBuffer.height = _height2;
-
-            var _frameBuffer2 = this._labelFrameBuffer;
-            _frameBuffer2.width = _width2;
-            _frameBuffer2.height = _height2;
-
-            // loop through the pixels and draw them to the invisible canvas
-            // from bottom right up
-            // also apply thresholding
-            var _index = 0;
-            do {
-
-            // default color and label is just transparent
-            var _color = [0, 0, 0, 0];
-            var _label = [0, 0, 0, 0];
-            var _fac1 = _volume._max - _volume._min; // LL: WTF is this!!
-
-            // grab the pixel intensity
-            // slice data is normalized (probably shouldn't ?)
-            // de-normalize it (get real value)
-            //
-            // LL custom code, similar to D.B. but important differences:
-            //
-            var _intensity = (_sliceData[_index] / 255) * _fac1 + _volume._min;
-            var _intensityR = (_sliceData[_index] / 255) * _fac1 + _volume._min;
-            var _intensityG = (_sliceData[_index + 1] / 255) * _fac1 + _volume._min;
-            var _intensityB = (_sliceData[_index + 2] / 255) * _fac1 + _volume._min;
-            var _intensityA = (_sliceData[_index + 4] / 255) * _fac1 + _volume._min;
-
-            // apply window/level
-            var _window = _windowHigh - _windowLow;
-            var _level = _window/2 + _windowLow;
-
-            var _origIntensity = 0;
-            var _origIntensityR = 0;
-            var _origIntensityG = 0;
-            var _origIntensityB = 0;
-            var _origIntensityA = 0;
-
-            if(_intensity < _level - _window/2 ){
-                _origIntensity = 0;
-                _origIntensityR = 0;
-                _origIntensityG = 0;
-                _origIntensityB = 0;
-                _origIntensityA = 0; // should the alpha be 0 or 255?? -LL
-            }
-            else if(_intensity > _level + _window/2 ){
-                _origIntensity = 255;
-                _origIntensityR = 255;
-                _origIntensityG = 255;
-                _origIntensityB = 255;
-                _origIntensityA = 255;
-            }
-            else{
-                _origIntensity  = Math.round(255 * (_intensity - (_level - _window / 2))/_window);
-                _origIntensityR = Math.round(255 * (_intensityR - (_level - _window / 2))/_window);
-                _origIntensityG = Math.round(255 * (_intensityG - (_level - _window / 2))/_window);
-                _origIntensityB = Math.round(255 * (_intensityB - (_level - _window / 2))/_window);
-                _origIntensityA = 255 // alpha level = 255
-            }
-
-            // apply thresholding
-            if (_intensity >= _lowerThreshold && _intensity <= _upperThreshold) {
-
-                // current intensity is inside the threshold range so use the real
-                // intensity
-
-                // LL: this portion is not needed:
-                // map volume scalars to a linear color gradient
-                /*var maxColor = new goog.math.Vec3(_volume._maxColor[0],
-                    _volume._maxColor[1], _volume._maxColor[2]);
-                var minColor = new goog.math.Vec3(_volume._minColor[0],
-                    _volume._minColor[1], _volume._minColor[2]);
-                _color = maxColor.scale(_origIntensity).add(
-                    minColor.scale(255 - _origIntensity));*/
-                //
-
-                // .. and back to an array
-                /*_color = [Math.floor(_color.x), Math.floor(_color.y),
-                        Math.floor(_color.z), 255];*/
-                // LL: instead of above portion, use colArray lookup:
-                _color = [this._colArrayCURRENT[_origIntensityR][0],
-                        this._colArrayCURRENT[_origIntensityG][1],
-                        this._colArrayCURRENT[_origIntensityB][2],
-                        255];
-
-                if (_currentLabelMap) {
-
-                  // we have a label map here
-                  var _labelmapOpacity = _volume._labelmap._opacity; // LL added
-                  var _labelOpacity = _labelmapOpacity * _labelData[_index+ 3]; // LL added
-                  // check if all labels are shown or only one
-                  if (_labelmapShowOnlyColor[3] == -255) {
-
-                      // all labels are shown
-                      _label = [_labelData[_index], _labelData[_index + 1],
-                              _labelData[_index + 2], _labelOpacity];
-                      // LL added:
-                      if(_label[0] == 0 && _label[1] == 0 && _label[2] == 0){
-                        _label[3] = 0;
-                      };
-
-                  } else {
-
-                    // show only the label which matches in color
-                    if (X.array.compare(_labelmapShowOnlyColor, _labelData, 0, _index,
-                        4)) {
-
-                      // this label matches
-                      _label = [_labelData[_index], _labelData[_index + 1],
-                                  _labelData[_index + 2], _labelOpacity];
-                      // LL added:
-                      if(_label[0] == 0 && _label[1] == 0 && _label[2] == 0){
-                        _label[3] = 0;
-                      };
-
-                    }
-
-                  }
-
-                }
-
-            }
-            // LL added else statement - why wasn't this here??
-            // ans: apparently doesn't do anything, but yet to break anything
-            else{
-                _color = [0,0,0,0];
-            }
-
-            if(this._orientation == "X"){
-                // invert nothing
-                _pixels[_index] = _color[0]; // r
-                _pixels[_index + 1] = _color[1]; // g
-                _pixels[_index + 2] = _color[2]; // b
-                _pixels[_index + 3] = _color[3]; // a
-                _labelPixels[_index] = _label[0]; // r
-                _labelPixels[_index + 1] = _label[1]; // g
-                _labelPixels[_index + 2] = _label[2]; // b
-                _labelPixels[_index + 3] = _label[3]; // a
-            }
-            else if(this._orientation == "Y"){
-                // invert cols
-                var row = Math.floor(_index/(_sliceWidth*4));
-                var col = _index - row*_sliceWidth*4;
-                var invCol = 4*(_sliceWidth-1) - col ;
-                var _invertedColsIndex = row*_sliceWidth*4 + invCol;
-                _pixels[_invertedColsIndex] = _color[0]; // r
-                _pixels[_invertedColsIndex + 1] = _color[1]; // g
-                _pixels[_invertedColsIndex + 2] = _color[2]; // b
-                _pixels[_invertedColsIndex + 3] = _color[3]; // a
-                _labelPixels[_invertedColsIndex] = _label[0]; // r
-                _labelPixels[_invertedColsIndex + 1] = _label[1]; // g
-                _labelPixels[_invertedColsIndex + 2] = _label[2]; // b
-                _labelPixels[_invertedColsIndex + 3] = _label[3]; // a
-            }
-            else{
-                // invert all
-                var _invertedIndex = _pixelsLength - 1 - _index;
-                _pixels[_invertedIndex - 3] = _color[0]; // r
-                _pixels[_invertedIndex - 2] = _color[1]; // g
-                _pixels[_invertedIndex - 1] = _color[2]; // b
-                _pixels[_invertedIndex] = _color[3]; // a
-                _labelPixels[_invertedIndex - 3] = _label[0]; // r
-                _labelPixels[_invertedIndex - 2] = _label[1]; // g
-                _labelPixels[_invertedIndex - 1] = _label[2]; // b
-                _labelPixels[_invertedIndex] = _label[3]; // a
-            }
-
-            _index += 4; // increase by 4 units for r,g,b,a
-
-            } while (_index < _pixelsLength);
-
-            // store the generated image data to the frame buffer context
-            _imageFBContext.putImageData(_imageData, 0, 0);
-            _labelFBContext.putImageData(_labelmapData, 0, 0);
-
-            // cache the current slice index and other values
-            // which might require a redraw
-            this._currentSlice = _currentSlice;
-            this._lowerThreshold = _lowerThreshold;
-            this._upperThreshold = _upperThreshold;
-            this._windowLow = _windowLow;
-            this._windowHigh = _windowHigh;
+            
+            // LL: instead of above portion, use colArray lookup:
+            _color = [this._colArrayCURRENT[_origIntensityR][0],
+                    this._colArrayCURRENT[_origIntensityG][1],
+                    this._colArrayCURRENT[_origIntensityB][2],
+                    255];
 
             if (_currentLabelMap) {
 
-            // only update the setting if we have a labelmap
-            this._labelmapShowOnlyColor = _labelmapShowOnlyColor;
+              // we have a label map here
+              var _labelmapOpacity = _volume._labelmap._opacity; // LL added
+              var _labelOpacity = _labelData[_index+ 3]; // or * _labelmapOpacity?
+              // check if all labels are shown or only one
+              if (_labelmapShowOnlyColor[3] == -255) {
+
+                  // all labels are shown
+                  _label = [_labelData[_index], _labelData[_index + 1],
+                          _labelData[_index + 2], _labelOpacity];
+                  // LL added:
+                  if(_label[0] == 0 && _label[1] == 0 && _label[2] == 0){
+                    _label[3] = 0;
+                  };
+
+              } else {
+
+                // show only the label which matches in color
+                if (X.array.compare(_labelmapShowOnlyColor, _labelData, 0, _index,
+                    4)) {
+
+                  // this label matches
+                  _label = [_labelData[_index], _labelData[_index + 1],
+                              _labelData[_index + 2], _labelOpacity];
+                  // LL added:
+                  if(_label[0] == 0 && _label[1] == 0 && _label[2] == 0){
+                    _label[3] = 0;
+                  };
+
+                }
+
+              }
 
             }
 
         }
+        // LL added else statement - why wasn't this here??
+        // ans: apparently doesn't do anything, but yet to break anything
+        //else{
+          //  _color = [0,0,0,0];
+        //}
 
-        //
-        // the actual drawing (rendering) happens here
-        //
-
-        // draw the slice frame buffer (which equals the slice data) to the main
-        // context
-        this._context.globalAlpha = 1.0; // draw fully opaque}
-
-        // move to the middle
-        this._context.translate(_width / 2 /this._normalizedScale, _height / 2 /
-            this._normalizedScale);
-
-        // Rotate the Sagittal viewer
-        if(this._orientation == "X") {
-
-            this._context.rotate(Math.PI * 0.5);
-
-            var _buf = _x;
-            _x = _y;
-            _y = -_buf;
-
+        if(this._orientation == "X"){
+            // invert nothing
+            _pixels[_index] = _color[0]; // r
+            _pixels[_index + 1] = _color[1]; // g
+            _pixels[_index + 2] = _color[2]; // b
+            _pixels[_index + 3] = _color[3]; // a
+            _labelPixels[_index] = _label[0]; // r
+            _labelPixels[_index + 1] = _label[1]; // g
+            _labelPixels[_index + 2] = _label[2]; // b
+            _labelPixels[_index + 3] = _label[3]; // a
         }
-
-        var _offset_x = -_sliceWidth * this._sliceWidthSpacing / 2 + _x;
-        var _offset_y = -_sliceHeight * this._sliceHeightSpacing / 2 + _y;
-
-        // draw the slice
-        this._context.drawImage(this._frameBuffer, _offset_x, _offset_y, _sliceWidth *
-            this._sliceWidthSpacing, _sliceHeight * this._sliceHeightSpacing);
-
-        // draw the labels with a configured opacity
-        if (_currentLabelMap && _volume._labelmap._visible) {
-
-            var _labelOpacity = 1;//_volume._labelmap._opacity;
-            this._context.globalAlpha = _labelOpacity; // draw transparent depending on
-            // opacity
-            this._context.drawImage(this._labelFrameBuffer, _offset_x, _offset_y,
-                _sliceWidth * this._sliceWidthSpacing, _sliceHeight *
-                    this._sliceHeightSpacing);
-
+        else if(this._orientation == "Y"){
+            // invert cols
+            var row = Math.floor(_index/(_sliceWidth*4));
+            var col = _index - row*_sliceWidth*4;
+            var invCol = 4*(_sliceWidth-1) - col ;
+            var _invertedColsIndex = row*_sliceWidth*4 + invCol;
+            _pixels[_invertedColsIndex] = _color[0]; // r
+            _pixels[_invertedColsIndex + 1] = _color[1]; // g
+            _pixels[_invertedColsIndex + 2] = _color[2]; // b
+            _pixels[_invertedColsIndex + 3] = _color[3]; // a
+            _labelPixels[_invertedColsIndex] = _label[0]; // r
+            _labelPixels[_invertedColsIndex + 1] = _label[1]; // g
+            _labelPixels[_invertedColsIndex + 2] = _label[2]; // b
+            _labelPixels[_invertedColsIndex + 3] = _label[3]; // a
         }
-
-        // if enabled, show slice navigators
-        if (this._config['SLICENAVIGATORS']) {
-            this._canvas.style.cursor = "none";
-
-            // but only if the shift key is down and the left mouse is not
-            if (this._interactor._mouseInside && this._interactor._shiftDown &&
-                !this._interactor._leftButtonDown) {
-
-            var _mousePosition = this._interactor._mousePosition;
-
-            // check if we are over the slice
-            var ijk = this.xy2ijk(_mousePosition[0], _mousePosition[1]);
-
-            if (ijk) {
-                // // we are over the slice
-                // update the volume
-                _volume._indexX = ijk[0][0];
-                _volume._indexY = ijk[0][1];
-                _volume._indexZ = ijk[0][2];
-                _volume.modified(false);
-
-                this['onSliceNavigation']();
-
-                // draw the navigators
-                // see http://diveintohtml5.info/canvas.html#paths
-
-                // in x-direction
-                this._context.setTransform(1, 0, 0, 1, 0, 0);
-                this._context.beginPath();
-                this._context.moveTo(this._interactor._mousePosition[0], 0);
-                this._context.lineTo(this._interactor._mousePosition[0],
-                    this._interactor._mousePosition[1] - 1);
-                this._context.moveTo(this._interactor._mousePosition[0],
-                    this._interactor._mousePosition[1] + 1);
-                this._context.lineTo(this._interactor._mousePosition[0],
-                    this._height);
-                this._context.strokeStyle = this._orientationColors[0];
-                this._context.stroke();
-                this._context.closePath();
-
-                // in y-direction
-                this._context.beginPath();
-                this._context.moveTo(0, this._interactor._mousePosition[1]);
-                this._context.lineTo(this._interactor._mousePosition[0] - 1,
-                    this._interactor._mousePosition[1]);
-                this._context.moveTo(this._interactor._mousePosition[0] + 1, this._interactor._mousePosition[1]);
-                this._context.lineTo(this._width,
-                    this._interactor._mousePosition[1]);
-                this._context.strokeStyle = this._orientationColors[1];
-                this._context.stroke();
-                this._context.closePath();
-
-                // write ijk coordinates
-                this._context.font = '10pt Arial';
-                // textAlign aligns text horizontally relative to placement
-                this._context.textAlign = 'left';
-                // textBaseline aligns text vertically relative to font style
-                this._context.textBaseline = 'top';
-                this._context.fillStyle = 'white';
-                this._context.fillText('RAS: ' + ijk[2][0].toFixed(2) + ', ' + ijk[2][1].toFixed(2) + ', ' + ijk[2][2].toFixed(2), 0, 0);
-
-                var _value = 'undefined';
-                var _valueLM = 'undefined';
-                var _valueCT = 'undefined';
-                if(typeof _volume._IJKVolume[ijk[1][2].toFixed(0)] != 'undefined' && typeof _volume._IJKVolume[ijk[1][2].toFixed(0)][ijk[1][1].toFixed(0)] != 'undefined'){
-                _value = _volume._IJKVolume[ijk[1][2].toFixed(0)][ijk[1][1].toFixed(0)][ijk[1][0].toFixed(0)];
-                if(_volume.hasLabelMap){
-                    _valueLM = _volume._labelmap._IJKVolume[ijk[1][2].toFixed(0)][ijk[1][1].toFixed(0)][ijk[1][0].toFixed(0)];
-                    if(_volume._labelmap._colorTable){
-                    _valueCT = _volume._labelmap._colorTable.get(_valueLM);
-                    if(typeof _valueCT != 'undefined'){
-                    _valueCT = _valueCT[0];
-                    }
-                    }
-                }
-                }
-                // get pixel value
-                this._context.fillText('Background:  ' + _value + ' ('+ ijk[1][0].toFixed(0) + ', ' + ijk[1][1].toFixed(0) + ', ' + ijk[1][2].toFixed(0) + ')', 0, 15);
-                // if any label map
-                if(_volume.hasLabelMap){
-                this._context.fillText('Labelmap:  ' + _valueCT + ' ('+ _valueLM + ')', 0, 30);
-                }
-
-            }
-
-            }
         else{
-            this._canvas.style.cursor = "default";
+            // invert all
+            var _invertedIndex = _pixelsLength - 1 - _index;
+            _pixels[_invertedIndex - 3] = _color[0]; // r
+            _pixels[_invertedIndex - 2] = _color[1]; // g
+            _pixels[_invertedIndex - 1] = _color[2]; // b
+            _pixels[_invertedIndex] = _color[3]; // a
+            _labelPixels[_invertedIndex - 3] = _label[0]; // r
+            _labelPixels[_invertedIndex - 2] = _label[1]; // g
+            _labelPixels[_invertedIndex - 1] = _label[2]; // b
+            _labelPixels[_invertedIndex] = _label[3]; // a
         }
+
+        _index += 4; // increase by 4 units for r,g,b,a
+
+        } while (_index < _pixelsLength);
+
+        // store the generated image data to the frame buffer context
+        _imageFBContext.putImageData(_imageData, 0, 0);
+        _labelFBContext.putImageData(_labelmapData, 0, 0);
+
+        // cache the current slice index and other values
+        // which might require a redraw
+        this._currentSlice = _currentSlice;
+        this._lowerThreshold = _lowerThreshold;
+        this._upperThreshold = _upperThreshold;
+        this._windowLow = _windowLow;
+        this._windowHigh = _windowHigh;
+
+        if (_currentLabelMap) {
+
+        // only update the setting if we have a labelmap
+        this._labelmapShowOnlyColor = _labelmapShowOnlyColor;
+
         }
-      }
-      else{
-          window.console.log('NO LOADER');
-      };
+
+    }
+
+    //
+    // the actual drawing (rendering) happens here
+    //
+
+    // draw the slice frame buffer (which equals the slice data) to the main
+    // context
+    this._context.globalAlpha = 1.0; // draw fully opaque}
+
+    // move to the middle
+    this._context.translate(_width / 2 /this._normalizedScale, _height / 2 /
+        this._normalizedScale);
+
+    // Rotate the Sagittal viewer
+    if(this._orientation == "X") {
+
+        this._context.rotate(Math.PI * 0.5);
+
+        var _buf = _x;
+        _x = _y;
+        _y = -_buf;
+
+    }
+
+    var _offset_x = -_sliceWidth * this._sliceWidthSpacing / 2 + _x;
+    var _offset_y = -_sliceHeight * this._sliceHeightSpacing / 2 + _y;
+
+    // draw the slice
+    this._context.drawImage(this._frameBuffer, _offset_x, _offset_y, _sliceWidth *
+        this._sliceWidthSpacing, _sliceHeight * this._sliceHeightSpacing);
+
+    // draw the labels with a configured opacity
+    if (_currentLabelMap && _volume._labelmap._visible) {
+
+        var _labelOpacity = 1; //_volume._labelmap._opacity
+        this._context.globalAlpha = _labelOpacity; // draw transparent depending on
+        // opacity
+        this._context.drawImage(this._labelFrameBuffer, _offset_x, _offset_y,
+            _sliceWidth * this._sliceWidthSpacing, _sliceHeight *
+                this._sliceHeightSpacing);
+
+    }
+
+    // if enabled, show slice navigators
+    if (this._config['SLICENAVIGATORS']) {
+        this._canvas.style.cursor = "none";
+
+        // but only if the shift key is down and the left mouse is not
+        if (this._interactor._mouseInside && this._interactor._shiftDown &&
+            !this._interactor._leftButtonDown) {
+
+        var _mousePosition = this._interactor._mousePosition;
+
+        // check if we are over the slice
+        var ijk = this.xy2ijk(_mousePosition[0], _mousePosition[1]);
+
+        if (ijk) {
+            // // we are over the slice
+            // update the volume
+            _volume._indexX = ijk[0][0];
+            _volume._indexY = ijk[0][1];
+            _volume._indexZ = ijk[0][2];
+            _volume.modified(false);
+
+            this['onSliceNavigation']();
+
+            // draw the navigators
+            // see http://diveintohtml5.info/canvas.html#paths
+
+            // in x-direction
+            this._context.setTransform(1, 0, 0, 1, 0, 0);
+            this._context.beginPath();
+            this._context.moveTo(this._interactor._mousePosition[0], 0);
+            this._context.lineTo(this._interactor._mousePosition[0],
+                this._interactor._mousePosition[1] - 1);
+            this._context.moveTo(this._interactor._mousePosition[0],
+                this._interactor._mousePosition[1] + 1);
+            this._context.lineTo(this._interactor._mousePosition[0],
+                this._height);
+            this._context.strokeStyle = this._orientationColors[0];
+            this._context.stroke();
+            this._context.closePath();
+
+            // in y-direction
+            this._context.beginPath();
+            this._context.moveTo(0, this._interactor._mousePosition[1]);
+            this._context.lineTo(this._interactor._mousePosition[0] - 1,
+                this._interactor._mousePosition[1]);
+            this._context.moveTo(this._interactor._mousePosition[0] + 1, this._interactor._mousePosition[1]);
+            this._context.lineTo(this._width,
+                this._interactor._mousePosition[1]);
+            this._context.strokeStyle = this._orientationColors[1];
+            this._context.stroke();
+            this._context.closePath();
+
+            // write ijk coordinates
+            this._context.font = '10pt Arial';
+            // textAlign aligns text horizontally relative to placement
+            this._context.textAlign = 'left';
+            // textBaseline aligns text vertically relative to font style
+            this._context.textBaseline = 'top';
+            this._context.fillStyle = 'white';
+            this._context.fillText('RAS: ' + ijk[2][0].toFixed(2) + ', ' + ijk[2][1].toFixed(2) + ', ' + ijk[2][2].toFixed(2), 0, 0);
+
+            var _value = 'undefined';
+            var _valueLM = 'undefined';
+            var _valueCT = 'undefined';
+            if(typeof _volume._IJKVolume[ijk[1][2].toFixed(0)] != 'undefined' && typeof _volume._IJKVolume[ijk[1][2].toFixed(0)][ijk[1][1].toFixed(0)] != 'undefined'){
+            _value = _volume._IJKVolume[ijk[1][2].toFixed(0)][ijk[1][1].toFixed(0)][ijk[1][0].toFixed(0)];
+            if(_volume.hasLabelMap){
+                _valueLM = _volume._labelmap._IJKVolume[ijk[1][2].toFixed(0)][ijk[1][1].toFixed(0)][ijk[1][0].toFixed(0)];
+                if(_volume._labelmap._colorTable){
+                _valueCT = _volume._labelmap._colorTable.get(_valueLM);
+                if(typeof _valueCT != 'undefined'){
+                _valueCT = _valueCT[0];
+                }
+                }
+            }
+            }
+            // get pixel value
+            this._context.fillText('Background:  ' + _value + ' ('+ ijk[1][0].toFixed(0) + ', ' + ijk[1][1].toFixed(0) + ', ' + ijk[1][2].toFixed(0) + ')', 0, 15);
+            // if any label map
+            if(_volume.hasLabelMap){
+            this._context.fillText('Labelmap:  ' + _valueCT + ' ('+ _valueLM + ')', 0, 30);
+            }
+
+        }
+
+        }
+    else{
+        this._canvas.style.cursor = "default";
+    }
+    }
+  
+      
   }
   else{
     window.console.log('NO VOLUME');
