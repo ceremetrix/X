@@ -985,9 +985,15 @@ X.parser.reslice2 = function(_sliceOrigin, _sliceXYSpacing, _sliceNormal, _color
     sliceXY._borders = false;
   }
   else{
-    sliceXY._borders = true;
+    if (sliceXY._volume._borders) {
+      sliceXY._borders = true;
+      sliceXY._borderColor = _color;
+    }
+    else{
+      sliceXY._borders = false;
+    }
   }
-  sliceXY._borderColor = _color;
+  
 
   // create slice
   sliceXY.create_();
