@@ -401,7 +401,7 @@ X.slice.prototype.create_ = function() {
   this._normals.add(frontVector.x, frontVector.y, frontVector.z);
 
   // add some borders, if enabled
-  if (this._borders) {
+  if (this._volume._borders) {
     var borders = new X.object();
 
     // allocate memory

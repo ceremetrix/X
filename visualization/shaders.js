@@ -216,34 +216,38 @@ X.shaders = function() {
   t2 += '     vec3 _maxrange = vec3(_windowHigh,_windowHigh,_windowHigh);\n';
   t2 += '     vec3 fac = _maxrange - _minrange;\n';
   // LL added:
-  t2 += '     textureSum.r = (textureSum.r - _windowLow)/(_windowHigh - _windowLow);\n';
+  t2 += '     textureSum.r = (textureSum.r - _windowLow)/(_windowHigh - _windowLow);\n'; //lq commenting out denominator helps when default window is set, but overall brightness decreases.
   t2 += '     textureSum.g = (textureSum.g - _windowLow)/(_windowHigh - _windowLow);\n';
   t2 += '     textureSum.b = (textureSum.b - _windowLow)/(_windowHigh - _windowLow);\n';
-  //t2 += '     textureSum.a = objectOpacity; \n';  // transparency for multiple volumes?? nope - commenting out sets transparancy correct
+  //t2 += '     textureSum.a = objectOpacity; \n';  // transparency for multiple volumes?? nope - commenting out sets transparancy correct (not exactly - LQ)
   // LL change: t2 += '     textureSum = vec4((textureSum.r - _minrange)/fac,1);\n';
   // map volume scalars to a linear color gradient
   // LL change: t2 += '     textureSum = textureSum.r * vec4(volumeScalarMaxColor,1) + (1.0 - textureSum.r) * vec4(volumeScalarMinColor,1);\n';
   t2 += '   }\n';
   t2 += '   if (useLabelMapTexture) {\n'; // special case for label maps
   t2 += '     vec4 texture2 = texture2D(textureSampler2,fragmentTexturePos);\n';
+  //t2 += '     texture2.rgb = texture2.rgb / texture2.a;\n'; //LQ add premultiplication made it darker, didn't work.
   t2 += '     if (texture2.a > 0.0) {\n'; // check if this is not the background
   // label
   t2 += '         if (labelmapColor.a != -255.0) {\n'; // check if only one color should be shown
   t2 += '           if (all(equal(floor(texture2 * vec4(255)), labelmapColor))) {\n'; // if equal, mix colors
-  t2 += '             if (labelmapOpacity < 1.0) {\n'; // transparent label map
-  t2 += '               textureSum = mix(texture2, textureSum, 1.0 - labelmapOpacity);\n';
+  t2 += '             if (labelmapOpacity <= 1.0) {\n'; // transparent label map
+  t2 += '               textureSum = mix(texture2, textureSum, 1.0 - labelmapOpacity);\n'; 
   t2 += '             } else {\n';
   t2 += '               textureSum = texture2;\n'; // fully opaque label map
   t2 += '             }\n';
   t2 += '           }\n';
   t2 += '         } else {\n';  // if not only one color, always mix
   t2 += '           if (labelmapOpacity < 1.0) {\n'; // transparent label map
-  t2 += '             textureSum = mix(texture2, textureSum, 1.0 - labelmapOpacity);\n';
-  t2 += '           } else {\n';
-  t2 += '             textureSum = texture2;\n'; // fully opaque label map
-  t2 += '           }\n';
+  t2 += '             textureSum = mix(texture2, textureSum, 1.0 - labelmapOpacity);\n'; 
+  t2 += '           } else {\n'; 
+  t2 += '               if (texture2.a < 1.0) {\n'; //LQ add
+  t2 += '                 textureSum = mix(texture2, textureSum, 1.0 - texture2.a);\n'; //LQ add: mix is a linear interpolation of the two textures based on alpha. 
+  t2 += '               } else {\n';
+  t2 += '                 textureSum = texture2;\n'; // fully opaque label map;
+  t2 += '               }\n'; //LQ add 
+  t2 += '           }\n'; //LQ add 
   t2 += '         }\n';
-
   t2 += '     }\n';
   t2 += '   }\n';
   // threshold functionality for 1-channel volumes
@@ -265,7 +269,7 @@ X.shaders = function() {
   t2 += '     }\n';
   t2 += '   }\n';
   t2 += '   gl_FragColor = textureSum;\n';
-  t2 += '   gl_FragColor.a = objectOpacity;\n';  // Commenting out sets opacity correctly except for the initial loading
+  t2 += '   gl_FragColor.a = objectOpacity;\n';  //LQ Commenting in makes labelmap overlay not see through // Commenting out sets opacity correctly except for the initial loading
   t2 += ' } else {\n';
   // configure advanced lighting
   t2 += '   vec3 nNormal = normalize(fTransformedVertexNormal);\n';

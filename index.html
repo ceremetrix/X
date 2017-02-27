@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
 <head>
     <title>XTK TEST WITHOUT COMPILATION</title>
@@ -7,7 +7,6 @@
     <script type="text/javascript" src="xtk-deps.js"></script>
 
     <script type="text/javascript">
-
         // include all used X-classes here
         // this is only required when using the xtk-deps.js file
         goog.require('X.renderer');
@@ -17,14 +16,11 @@
         goog.require('X.slice');
         goog.require('X.mesh');
         goog.require('X.labelmap');
-
         window.onload = function () {
-
             // create and initialize a 3D renderer
             var r = new X.renderer3D();
             r.container = 'r';
             r.init();
-
             // create the 2D renderers
             // .. for the X orientation
             var sliceX = new X.renderer2D();
@@ -42,38 +38,36 @@
             sliceZ.container = 'sliceZ';
             sliceZ.orientation = 'Z';
             sliceZ.init();
-
+            
             // create a volume
             var volume = new X.volume();
-            //volume.file = "/../Images/Patient01.norm.nii";
+            volume.file = "/../Images/Patient01.norm.nii";
+            volume.borders = false;
             
-            volume.file = "/../Images/MRI_Template.nii"; // MRI file
+            //LQvolume.file = "/../Images/MRI_Template.nii"; // MRI file
             //volume.labelmap.file = "/../Images/new_clusterID_img_Patient01.nii";
-            //volume.labelmap.file = "/../Images/Patient01.norm.nii";
-            //volume.labelmap.colortable.file = "/../Images/MRI_colorTable.txt";
+            //volume.labelmap.file = "/../Images/MRI_Template.nii";
+            //volume.labelmap.colortable.file = "/../Images/labelmap_MRI2.txt";
             //volume.labelmap.colortable.file  = "/../Images/colortable_copy.txt";
-            //volume.labelmap.opacity = 0.6;
-            volume.opacity = 0.3;
+            //volume.labelmap.opacity = 0.9;
+            //lqvolume.opacity = 0.3;
   
-            var volume2 = new X.volume();
-            volume2.file = "/../Images/Patient01.norm.nii"
+            //LQvar volume2 = new X.volume();
+            //LQvolume2.file = "/../Images/Patient01.norm.nii"
             //volume2.opacity = 0.3; 
-
             var mesh = new X.mesh();
-            mesh.file = "/../Images/clusters.vtk";
-            mesh.color = [0.7, 0.25, 0.25];
-            mesh.opacity = 1;
-
+            mesh.file = "/../Images/outline.vtk";
+            mesh.color = [1, 1, 1];
+            mesh.opacity = 0.15;
             var mesh2 = new X.mesh();
             mesh2.file = "/../Images/clusters_NEW.vtk";
             mesh2.color = [1, 0.4, 0.7];
             mesh2.opacity = 1;
-
             // Windowing doesn't seem to do much yet, but 
             // thresholding does! LL 1.27.17
             
-            //volume.lowerThreshold = 15;
-
+            volume.lowerThreshold = 1;
+            volume.windowLow = 50;
             //alert(volume.color[1000,10,0]);
             //volume.maxColor = [1, .4, .1];
             //volume.minColor = [0, 0, .5];
@@ -86,31 +80,29 @@
             //sliceX.setColortable(0);
             // start the loading/rendering
             sliceX.render();
-
             sliceX.onShowtime = function () {
-
                 sliceY.add(volume);
                 //sliceY.add(volume2);
                 sliceY.render();
                 sliceZ.add(volume);
                 //sliceZ.add(volume2);
                 sliceZ.render();
-
                 r.add(volume);
-                r.add(volume2);
+                //lq r.add(volume2);
                 //r.setColortable(0);
                 //r.setLabelmapColortable(0);
-                //r.add(mesh);
+                r.add(mesh);
                 //r.add(mesh2);
                 
                 //r.setColortable(2);
                 r.render();
+                
                 //volume.lowerThreshold = 2;
                 //volume.opacity = 0.1;
                 //volume.volumeRendering = true;
-                volume2.windowLow = 40;
-                volume2.windowHigh = 1705;
-                volume2.lowerThreshold = 40;
+                //volume.windowLow = 40;
+                //LQvolume2.windowHigh = 1705;
+                //LQvolume2.lowerThreshold = 40;
                 //volume.volumeRendering = true;
                 //volume.opacity = 0.1;    
                 
@@ -118,7 +110,6 @@
                 //volume.maxColor = [0,0,1];
                 
             }
-
             // adjust the camera position a little bit, just for visualization purposes
             r.camera.position = [0, 0, 200];
             
