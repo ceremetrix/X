@@ -102,8 +102,19 @@ X.parserNII.prototype.parse = function(container, object, data, flag) {
   var max = MRI.max;
 
   // attach the scalar range to the volume
-  object._min = object._windowLow = min;
-  object._max = object._windowHigh = max;
+  //lq object._min = object._windowLow = min; //maybe this is where window gets replaced? lq
+  //lq object._max = object._windowHigh = max;
+  
+  if (object._windowLow == Infinity) { //lq
+    object._windowLow = min;  //lq
+  }  //lq
+  if (object._windowHigh == -Infinity) {  //lq
+    object._windowHigh = max;  //lq
+  }  //lq
+  
+  object._max = max;  //lq
+  object._min = min;  //lq
+
   // .. and set the default threshold
   // only if the threshold was not already set
   if (object._lowerThreshold == -Infinity) {
