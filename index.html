@@ -45,9 +45,9 @@
 
             // create a volume
             var volume = new X.volume();
-            //volume.file = "/../Images/Patient01.norm.nii";
+            volume.file = "/../Images/masked_pt01.nii";
             
-            volume.file = "/../Images/MRI_Template.nii"; // MRI file
+            //volume.file = "/../Images/MRI_Template.nii"; // MRI file
             //volume.labelmap.file = "/../Images/new_clusterID_img_Patient01.nii";
             //volume.labelmap.file = "/../Images/Patient01.norm.nii";
             //volume.labelmap.colortable.file = "/../Images/MRI_colorTable.txt";
@@ -55,8 +55,8 @@
             //volume.labelmap.opacity = 0.6;
             volume.opacity = 0.3;
   
-            var volume2 = new X.volume();
-            volume2.file = "/../Images/Patient01.norm.nii"
+            //var volume2 = new X.volume();
+            //volume2.file = "/../Images/Patient01.norm.nii"
             //volume2.opacity = 0.3; 
 
             var mesh = new X.mesh();
@@ -97,20 +97,18 @@
                 sliceZ.render();
 
                 r.add(volume);
-                r.add(volume2);
+                
                 //r.setColortable(0);
                 //r.setLabelmapColortable(0);
-                //r.add(mesh);
-                //r.add(mesh2);
+                r.add(mesh);
+                r.add(mesh2);
                 
                 //r.setColortable(2);
                 r.render();
                 //volume.lowerThreshold = 2;
                 //volume.opacity = 0.1;
                 //volume.volumeRendering = true;
-                volume2.windowLow = 40;
-                volume2.windowHigh = 1705;
-                volume2.lowerThreshold = 40;
+                
                 //volume.volumeRendering = true;
                 //volume.opacity = 0.1;    
                 
