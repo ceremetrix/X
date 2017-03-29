@@ -29,3 +29,5 @@ xtk.js
 
 # nfs
 *.nfs*
+
+.html
