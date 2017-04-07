@@ -22,36 +22,36 @@
 
             // create and initialize a 3D renderer
             var r = new X.renderer3D();
-            r.container = 'r';
+            r.container = '3d';
             r.init();
 
             // create the 2D renderers
             // .. for the X orientation
             var sliceX = new X.renderer2D();
-            sliceX.container = 'sliceX';
+            sliceX.container = 'sag';
             sliceX.orientation = 'X';
             //sliceX.bgcolor = [255,255,255];
             sliceX.init();
             // .. for Y
             var sliceY = new X.renderer2D();
-            sliceY.container = 'sliceY';
+            sliceY.container = 'cor';
             sliceY.orientation = 'Y';
             sliceY.init();
             // .. and for Z
             var sliceZ = new X.renderer2D();
-            sliceZ.container = 'sliceZ';
+            sliceZ.container = 'ax';
             sliceZ.orientation = 'Z';
             sliceZ.init();
 
             // create a volume
             var volume = new X.volume();
-            volume.file = "/../Images/masked_pt01.nii";
+            volume.file = "/../Images/Patient01_zScores.nii";
             
             //volume.file = "/../Images/MRI_Template.nii"; // MRI file
-            //volume.labelmap.file = "/../Images/new_clusterID_img_Patient01.nii";
+            volume.labelmap.file = "/../Images/Patient01_clusterIDs.nii";
             //volume.labelmap.file = "/../Images/Patient01.norm.nii";
             //volume.labelmap.colortable.file = "/../Images/MRI_colorTable.txt";
-            //volume.labelmap.colortable.file  = "/../Images/colortable_copy.txt";
+            volume.labelmap.colortable.file  = "/../Images/colortable_copy.txt";
             //volume.labelmap.opacity = 0.6;
             volume.opacity = 0.3;
   
@@ -98,14 +98,14 @@
 
                 r.add(volume);
                 
-                //r.setColortable(0);
-                //r.setLabelmapColortable(0);
-                r.add(mesh);
-                r.add(mesh2);
+                r.setColortable(0);
+                //r.setLabelmapColortable(1);
+                //r.add(mesh);
+                //r.add(mesh2);
                 
                 //r.setColortable(2);
                 r.render();
-                //volume.lowerThreshold = 2;
+                //volume.lowerThreshold = 1;
                 //volume.opacity = 0.1;
                 //volume.volumeRendering = true;
                 
@@ -126,14 +126,14 @@
 </head>
 <body>
     <!--3D slice rendering-->
-    <div id='r' class='threeDRenderer' style="background-color: #000; width: 100%; height: 70%; margin-bottom: 2px;"></div>
+    <div id='3d' class='threeDRenderer' style="background-color: #000; width: 100%; height: 70%; margin-bottom: 2px;"></div>
     <!--2D slice viewers-->
 
-    <div id="sliceX"
+    <div id="sag"
             style="border-top: 2px solid red; background-color: #000; width: 32%; height: 30%; float: left;"></div>
-    <div id="sliceY"
+    <div id="cor"
             style="border-top: 2px solid limegreen;background-color: #000; width: 32%; height: 30%; float: left;"></div>
-    <div id="sliceZ"
+    <div id="ax"
             style="border-top: 2px solid blue; background-color: #000; width: 32%; height: 30%; float: left;"></div>
 
     <!--/2D slice viewers-->

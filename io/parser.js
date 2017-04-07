@@ -911,6 +911,22 @@ X.parser.reslice2 = function(_sliceOrigin, _sliceXYSpacing, _sliceNormal, _color
         if (colorTable) {
 
           // color table!
+          if (object instanceof X.labelmap) {
+
+            norm_val = pixval;
+            // check to see if it is a parametric overlay
+            if(object._parametric) {
+              // normalize the pixel value between 0-255 for lookup
+              // first translate values so lowest starts at 0:
+              trans_val = pixval + Math.abs(object._min);
+              norm_val = 255 * ((trans_val)/(object._max + Math.abs(object._min))); 
+
+            }
+            
+             
+
+
+          }
           var lookupValue = colorTable.get(pixval);
           // check for out of range and use the last label value in this case
           if (!lookupValue) {

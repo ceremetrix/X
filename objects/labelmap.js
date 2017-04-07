@@ -75,6 +75,14 @@ X.labelmap = function(volume) {
    */
   this._showOnlyColor = new Float32Array([-255, -255, -255, -255]);
 
+  /**
+   * The toggle for a parametric overlay.
+   *
+   * @type {boolean}
+   * @public
+   */
+  this._parametric = false;
+
 };
 // inherit from X.volume
 goog.inherits(X.labelmap, X.volume);
@@ -97,7 +105,8 @@ X.labelmap.prototype.modified = function() {
 
 };
 
-
+// ---------------------------------
+// LL added
 /**
  * Show only the label with the given value or color (RGBA 0..1). If null is passed,
  * show all labels.
@@ -139,6 +148,31 @@ X.labelmap.prototype.__defineSetter__('showOnly', function(label) {
 
 });
 
+/**
+ * Get the parametric overlay setting of this X.labelmap.
+ *
+ * @public
+ */
+X.labelmap.prototype.__defineGetter__('parametric', function() {
+
+  return this._parametric;
+
+});
+
+/**
+ * Toggle volume rendering or cross-sectional slicing of this X.volume.
+ *
+ * @param {boolean}
+ *          parametric If TRUE, changes the coloring scheme of the overlay,
+ *          but must have proper colortalbe assigned to it
+ * @public
+ */
+X.labelmap.prototype.__defineSetter__('parametric', function(parametric) {
+
+      this._parametric = parametric;
+
+});
+// --------------------------------------
 
 // export symbols (required for advanced compilation and in particular the copy
 // constructors with duck typing)

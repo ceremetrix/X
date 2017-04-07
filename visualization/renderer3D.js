@@ -567,21 +567,22 @@ X.renderer3D.prototype.setColortable = function(index) {
 
     var _volume = this._topLevelObjects[0];
 
-    if (index == 0)
-	this._colArrayCURRENT = this._colArrayDEFAULT;
-    if (index == 1)
-	this._colArrayCURRENT = this._colArrayIDS;
-    else if (index == 2)
-	this._colArrayCURRENT = this._colArrayHEAT;
-
-
+    if (index == 0) {
+	    this._colArrayCURRENT = this._colArrayDEFAULT;
+    }
+    if (index == 1) {
+	    this._colArrayCURRENT = this._colArrayIDS;
+    }
+    else if (index == 2) {
+	    this._colArrayCURRENT = this._colArrayHEAT;
+    }
 
     for (var i = 0; i < _volume._children.length; i++){ 
-	for(var j = 0; j < _volume._children[i]._children.length; j++){
-	    if(_volume._children[i]._children[j]){
-		_volume._children[i]._children[j]._texture._dirty = true;
-	    }
-	}
+      for(var j = 0; j < _volume._children[i]._children.length; j++){
+          if(_volume._children[i]._children[j]){
+              _volume._children[i]._children[j]._texture._dirty = true;
+          }
+      }
     }
 
     //_volume._texture._dirty = true;
@@ -598,12 +599,15 @@ X.renderer3D.prototype.setLabelmapColortable = function(index) {
     var _volume = this._topLevelObjects[0];
 
     
-    if (index == 0)
-	this._labelArrayCURRENT = this._colArrayDEFAULT;
-    if (index == 1)
-	this._labelArrayCURRENT = this._colArrayIDS;
-    else if (index == 2)
-	this._labelArrayCURRENT = this._colArrayHEAT;
+    if (index == 0) {
+	    this._labelArrayCURRENT = this._colArrayDEFAULT;
+    }
+    if (index == 1) {
+	    this._labelArrayCURRENT = this._colArrayIDS;
+    }
+    else if (index == 2) {
+	    this._labelArrayCURRENT = this._colArrayHEAT;
+    }
 
     //need to set the LABELMAP children dirty
 
@@ -613,17 +617,13 @@ X.renderer3D.prototype.setLabelmapColortable = function(index) {
     //console.log(labelmap);
 
     for (var i = 0; i < labelmap._children.length; i++){ 
-	for(var j = 0; j < labelmap._children[i]._children.length; j++){
-	    if(labelmap._children[i]._children[j]){
-		labelmap._children[i]._children[j]._texture._dirty = true;
+	    for(var j = 0; j < labelmap._children[i]._children.length; j++){
+	      if(labelmap._children[i]._children[j]){
+		      labelmap._children[i]._children[j]._texture._dirty = true;
+	      }
 	    }
-	}
     }
-
-
     this.update_(labelmap);
-
-
 };
 
 
@@ -633,11 +633,11 @@ X.renderer3D.prototype.resetTextures = function(){
     var _volume = this._topLevelObjects[0];
 
     for (var i = 0; i < _volume._children.length; i++){ 
-	for(var j = 0; j < _volume._children[i]._children.length; j++){
-	    if(_volume._children[i]._children[j]){
-		_volume._children[i]._children[j]._texture._dirty = true;
+	    for(var j = 0; j < _volume._children[i]._children.length; j++){
+	      if(_volume._children[i]._children[j]){
+		      _volume._children[i]._children[j]._texture._dirty = true;
+	      }
 	    }
-	}
     }
 
     //_volume._texture._dirty = true;
