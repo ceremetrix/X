@@ -149,6 +149,9 @@ X.parser.prototype.parse = function(container, object, data, flag) {
 //
 /**
  * Get the min and max values of an array.
+ * 
+ * LL adjusted to also return parametric max/mins for coloring purposes
+ * (ie the max zScore less than 0)
  *
  * @param {Array|Uint8Array|Uint16Array|Uint32Array|null}
  *          data The data array to analyze.
@@ -158,6 +161,8 @@ X.parser.prototype.arrayMinMax = function(data) {
 
   var _min = Infinity;
   var _max = -Infinity;
+  var _paramMin = -Infinity;
+  var _paramMax = Infinity;
 
   // buffer the length
   var _datasize = data.length;
@@ -168,14 +173,26 @@ X.parser.prototype.arrayMinMax = function(data) {
     if(!isNaN(data[i])) {
 
       var _value = data[i];
-      _min = Math.min(_min, _value);
-      _max = Math.max(_max, _value);
+      if ((Math.round(_value * 100)/100) < 0) {
+        _paramMin = Math.max(_paramMin, _value);
+        _min = Math.min(_min, _value);
+        _max = Math.max(_max, _value);   // not likely, but could have all negative values
+      }
+      else if ((Math.round(_value * 100)/100) > 0) {
+        _paramMax = Math.min(_paramMax, _value);
+        _min = Math.min(_min, _value);
+        _max = Math.max(_max, _value);   
+      }
+      else {
+        _min = Math.min(_min, _value);
+        _max = Math.max(_max, _value);
+      }
 
     }
 
   }
 
-  return [ _min, _max ];
+  return [ _min, _max, _paramMin, _paramMax ];
 
 };
 
@@ -911,28 +928,32 @@ X.parser.reslice2 = function(_sliceOrigin, _sliceXYSpacing, _sliceNormal, _color
         if (colorTable) {
 
           // color table!
+          norm_val = pixval;
           if (object instanceof X.labelmap) {
 
-            norm_val = pixval;
-            // check to see if it is a parametric overlay
+            // check to see if it is a parametric overlay -> need specific colortable
             if(object._parametric) {
-              // normalize the pixel value between 0-255 for lookup
-              // first translate values so lowest starts at 0:
-              trans_val = pixval + Math.abs(object._min);
-              norm_val = 255 * ((trans_val)/(object._max + Math.abs(object._min))); 
-
+              // normalize the negative values between 0-127 (0:len(keys_)/2-1)
+              // positive values between 128 and 255 (len(keys_)/2 : 255)
+              numColors = colorTable.keys_.length; 
+              
+              if (Math.round(pixval) <= object._paramMin) {
+                _rangeMax = Math.abs(object._min);
+                _rangeMin = Math.abs(object._paramMin);
+                norm_val = Math.round((numColors/2)-1 + ((Math.abs(pixval)-_rangeMin)*(-(numColors/2)-1)/(_rangeMax - _rangeMin)));
+              }
+              else if(Math.round(pixval) >= object._paramMax){
+                _rangeMax = object._max;
+                _rangeMin = object._paramMax;
+                norm_val = Math.round((numColors/2) + ((Math.abs(pixval)-_rangeMin)*(((numColors)-1)-(numColors/2))/(_rangeMax - _rangeMin))); 
+              }
             }
-            
-             
-
-
           }
-          var lookupValue = colorTable.get(pixval);
-          // check for out of range and use the last label value in this case
-          if (!lookupValue) {
 
-          lookupValue = [ 0, .61, 0, 0, 1 ];
-
+          var lookupValue = colorTable.get(norm_val);
+          // check for out of range and use a transparent label in this case
+          if (!lookupValue) { 
+            lookupValue = [ 0, 0, 0, 0, 0];
           }
 
           pixelValue_r = 255 * lookupValue[1];

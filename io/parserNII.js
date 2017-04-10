@@ -376,7 +376,10 @@ X.parserNII.prototype.parseStream = function(data) {
     magic: null, // *!< MUST be "ni1\0" or "n+1\0". */
     data: null,
     min: Infinity,
-    max: -Infinity
+    max: -Infinity,
+    // LL added:
+    paramMin: Infinity,    // The largest z-Score less than 0
+    paramMax: -Infinity      // The smallest z-Score greater than 0 
   };
   
   // header_key substruct
@@ -486,6 +489,8 @@ X.parserNII.prototype.parseStream = function(data) {
   var min_max = this.arrayMinMax(MRI.data);
   MRI.min = min_max[0];
   MRI.max = min_max[1];
+  MRI.paramMin = min_max[2];
+  MRI.paramMax = min_max[3]; 
   
   return MRI;
   

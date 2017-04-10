@@ -274,6 +274,30 @@ X.volume = function(volume) {
    */
   this._max = 0;
 
+/**
+   * The toggle for a parametric overlay.
+   *
+   * @type {boolean}
+   * @public
+   */
+  this._parametric = false;
+
+  /**
+   * LL added: the parametric max (smallest zScore > 0)
+   *
+   * @type {!number}
+   * @private
+   */
+  this._paramMax = 0;
+
+  /**
+   * LL added: the parametric min (largest zScore < 0)
+   *
+   * @type {!number}
+   * @private
+   */
+  this._paramMin = 0;
+
   /**
    * The image pixels
    *
@@ -379,6 +403,8 @@ X.volume.prototype.copy_ = function(volume) {
   this._slicesZ = new X.object(volume._slicesZ);
 
   this._max = volume._max;
+  this._paramMax = volume._paramMax;
+  this._paramMin = volume._paramMin;
   this._data = volume._data;
 
   // all info
@@ -420,6 +446,8 @@ X.volume.prototype.create_ = function(_info) {
   this._IJKToRAS = _info.IJKToRAS;
   this._RASToIJK = _info.RASToIJK;
   this._max = _info.max;
+  this._paramMax = _info.paramMax;
+  this._paramMin = _info.paramMin;
   this._data = _info.data;
   this._dirty = true;
 };
@@ -1426,6 +1454,31 @@ X.volume.prototype.__defineSetter__('zColor', function(zColor) {
 X.volume.prototype.__defineGetter__('zColor', function() {
 
   return this._childrenInfo[2]._color;
+
+});
+
+/**
+ * Get the parametric overlay setting of this X.volume.
+ *
+ * @public
+ */
+X.volume.prototype.__defineGetter__('parametric', function() {
+
+  return this._parametric;
+
+});
+
+/**
+ * Set the parametric overlay attribute of this X.labelmap
+ *
+ * @param {boolean}
+ *          parametric If TRUE, changes the coloring scheme of the volume,
+ *          but must have proper colortalbe assigned to it
+ * @public
+ */
+X.volume.prototype.__defineSetter__('parametric', function(parametric) {
+
+      this._parametric = parametric;
 
 });
 
