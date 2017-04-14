@@ -1079,6 +1079,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
 
     var _labelmap = _volume._labelmap;
     var _labelmapShowOnlyColor = null;
+    var _colortable = _volume._colortable;
 
     if (_labelmap) {
 
@@ -1161,172 +1162,206 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
         var _index = 0;
         do {
 
+
         // default color and label is just transparent
-        var _color = [0, 0, 0, 0];
-        var _label = [0, 0, 0, 0];
-        var _fac1 = _volume._max - _volume._min; // LL: WTF is this!!
+          var _color = [0, 0, 0, 0];
+          var _label = [0, 0, 0, 0];
+          var _fac1 = _volume._max - _volume._min; // LL: WTF is this!!
 
-        // grab the pixel intensity
-        // slice data is normalized (probably shouldn't ?)
-        // de-normalize it (get real value)
-        //
-        // LL custom code, similar to D.B. but important differences:
-        //
-        var _intensity = (_sliceData[_index] / 255) * _fac1 + _volume._min;
-        var _intensityR = (_sliceData[_index] / 255) * _fac1 + _volume._min;
-        var _intensityG = (_sliceData[_index + 1] / 255) * _fac1 + _volume._min;
-        var _intensityB = (_sliceData[_index + 2] / 255) * _fac1 + _volume._min;
-        var _intensityA = (_sliceData[_index + 3] / 255) * _fac1 + _volume._min;
+          // grab the pixel intensity
+          // slice data is normalized (probably shouldn't ?)
+          // de-normalize it (get real value)
+          //
+          // LL custom code, similar to D.B. but important differences:
+          //
 
-        // apply window/level
-        var _window = _windowHigh - _windowLow;
-        var _level = _window/2 + _windowLow;
+          // apply window/level (already applied if colortable exists)
+          var _window = _windowHigh - _windowLow;
+          var _level = _window/2 + _windowLow;
 
-        var _origIntensity = 0;
-        var _origIntensityR = 0;
-        var _origIntensityG = 0;
-        var _origIntensityB = 0;
-        var _origIntensityA = 0;
+          if (_intensityR>10 && _intensityB>10){
+            // do nothing
+          }
+          
+          var _origIntensity = 0;
+          var _origIntensityR = 0;
+          var _origIntensityG = 0;
+          var _origIntensityB = 0;
+          var _origIntensityA = 0;
 
-        if(_intensity < _level - _window/2 ){
-            _origIntensity = 0;
-            _origIntensityR = 0;
-            _origIntensityG = 0;
-            _origIntensityB = 0;
-            _origIntensityA = 0; // should the alpha be 0 or 255?? -LL
-        }
-        else if(_intensity > _level + _window/2 ){
-            _origIntensity = 255;
-            _origIntensityR = 255;
-            _origIntensityG = 255;
-            _origIntensityB = 255;
-            _origIntensityA = 255;
-        }
-        else{
-            _origIntensity  = Math.round(255 * (_intensity - (_level - _window / 2))/_window);
-            _origIntensityR = Math.round(255 * (_intensityR - (_level - _window / 2))/_window);
-            _origIntensityG = Math.round(255 * (_intensityG - (_level - _window / 2))/_window);
-            _origIntensityB = Math.round(255 * (_intensityB - (_level - _window / 2))/_window);
-            _origIntensityA = 255 // alpha level = 255
-        }
+          if (_colortable){
+            // The intensity (texture) is already normalized from parser.js if colortable present,
+            var _intensity = _sliceData[_index];
+            var _intensityR = _sliceData[_index];
+            var _intensityG = _sliceData[_index + 1];
+            var _intensityB = _sliceData[_index + 2];
+            var _intensityA = _sliceData[_index + 3];
 
-        // apply thresholding
-        if (_intensity >= _lowerThreshold && _intensity <= _upperThreshold) {
+            _origIntensity  = _intensity;
+            _origIntensityR = _intensityR;
+            _origIntensityG = _intensityG;
+            _origIntensityB = _intensityB;
+            _origIntensityA = _intensityA;
 
-            // current intensity is inside the threshold range so use the real
-            // intensity
+            _color = [_origIntensityR,
+                         _origIntensityG,
+                         _origIntensityB,
+                         _origIntensityA];
+          } 
+          else{
+              var _intensity = (_sliceData[_index] / 255) * _fac1 + _volume._min;
+              var _intensityR = (_sliceData[_index] / 255) * _fac1 + _volume._min;
+              var _intensityG = (_sliceData[_index + 1] / 255) * _fac1 + _volume._min;
+              var _intensityB = (_sliceData[_index + 2] / 255) * _fac1 + _volume._min;
+              var _intensityA = (_sliceData[_index + 3] / 255) * _fac1 + _volume._min;
+          
+              if(_intensity < _level - _window/2 ){
+                  _origIntensity = 0;
+                  _origIntensityR = 0;
+                  _origIntensityG = 0;
+                  _origIntensityB = 0;
+                  _origIntensityA = 0; // should the alpha be 0 or 255?? -LL
+              }
+              else if(_intensity > _level + _window/2 ){
+                  _origIntensity = 255;
+                  _origIntensityR = 255;
+                  _origIntensityG = 255;
+                  _origIntensityB = 255;
+                  _origIntensityA = 255;
+              }
+              else{
+                  _origIntensity  = Math.round(255 * (_intensity - (_level - _window / 2))/_window);
+                  _origIntensityR = Math.round(255 * (_intensityR - (_level - _window / 2))/_window);
+                  _origIntensityG = Math.round(255 * (_intensityG - (_level - _window / 2))/_window);
+                  _origIntensityB = Math.round(255 * (_intensityB - (_level - _window / 2))/_window);
+                  _origIntensityA = 255 // alpha level = 255
+              }
+            }
+        
 
-            
-            // LL: instead of above portion, use colArray lookup:
-            _color = [this._colArrayCURRENT[_origIntensityR][0],
-                    this._colArrayCURRENT[_origIntensityG][1],
-                    this._colArrayCURRENT[_origIntensityB][2],
-                    255];
+          // apply thresholding
+          if (_intensity >= _lowerThreshold && _intensity <= _upperThreshold) {
 
-            if (_currentLabelMap) {
+              // current intensity is inside the threshold range so use the real
+              // intensity
 
-              // we have a label map here
-              var _labelmapOpacity = _volume._labelmap._opacity; // LL added
-              var _labelOpacity = _labelData[_index+ 3]; // or * _labelmapOpacity?
-              // check if all labels are shown or only one
-              if (_labelmapShowOnlyColor[3] == -255) {
-
-                  // all labels are shown
-                  _label = [_labelData[_index], _labelData[_index + 1],
-                          _labelData[_index + 2], _labelOpacity];
-                  // LL added:
-                  if(_label[0] == 0 && _label[1] == 0 && _label[2] == 0){
-                    _label[3] = 0;
-                  };
-
+              if (!_colortable) {
+                _color = [_origIntensityR,
+                         _origIntensityG,
+                         _origIntensityB,
+                         _origIntensityA]
               } else {
+                // LL: instead of above portion, use colArray lookup:
+                _color = [this._colArrayCURRENT[_origIntensityR][0],
+                        this._colArrayCURRENT[_origIntensityG][1],
+                        this._colArrayCURRENT[_origIntensityB][2],
+                        255];
+              }
 
-                // show only the label which matches in color
-                if (X.array.compare(_labelmapShowOnlyColor, _labelData, 0, _index,
-                    4)) {
+              if (_currentLabelMap) {
 
-                  // this label matches
-                  _label = [_labelData[_index], _labelData[_index + 1],
-                              _labelData[_index + 2], _labelOpacity];
-                  // LL added:
-                  if(_label[0] == 0 && _label[1] == 0 && _label[2] == 0){
-                    _label[3] = 0;
-                  };
+                // we have a label map here
+                var _labelmapOpacity = _volume._labelmap._opacity; // LL added
+                var _labelOpacity = _labelData[_index+ 3]; // or * _labelmapOpacity?
+                // check if all labels are shown or only one
+                if (_labelmapShowOnlyColor[3] == -255) {
+
+                    // all labels are shown
+                    _label = [_labelData[_index], _labelData[_index + 1],
+                            _labelData[_index + 2], _labelOpacity];
+                    // LL added:
+                    if(_label[0] == 0 && _label[1] == 0 && _label[2] == 0){
+                      _label[3] = 0;
+                    };
+
+                } else {
+
+                  // show only the label which matches in color
+                  if (X.array.compare(_labelmapShowOnlyColor, _labelData, 0, _index,
+                      4)) {
+
+                    // this label matches
+                    _label = [_labelData[_index], _labelData[_index + 1],
+                                _labelData[_index + 2], _labelOpacity];
+                    // LL added:
+                    if(_label[0] == 0 && _label[1] == 0 && _label[2] == 0){
+                      _label[3] = 0;
+                    };
+
+                  }
 
                 }
 
               }
 
-            }
+          }
+          // LL added else statement - why wasn't this here??
+          // ans: apparently doesn't do anything, but yet to break anything
+          //else{
+            //  _color = [0,0,0,0];
+          //}
 
-        }
-        // LL added else statement - why wasn't this here??
-        // ans: apparently doesn't do anything, but yet to break anything
-        //else{
-          //  _color = [0,0,0,0];
-        //}
+          if(this._orientation == "X"){
+              // invert nothing
+              _pixels[_index] = _color[0]; // r
+              _pixels[_index + 1] = _color[1]; // g
+              _pixels[_index + 2] = _color[2]; // b
+              _pixels[_index + 3] = _color[3]; // a
+              _labelPixels[_index] = _label[0]; // r
+              _labelPixels[_index + 1] = _label[1]; // g
+              _labelPixels[_index + 2] = _label[2]; // b
+              _labelPixels[_index + 3] = _label[3]; // a
+          }
+          else if(this._orientation == "Y"){
+              // invert cols
+              var row = Math.floor(_index/(_sliceWidth*4));
+              var col = _index - row*_sliceWidth*4;
+              var invCol = 4*(_sliceWidth-1) - col ;
+              var _invertedColsIndex = row*_sliceWidth*4 + invCol;
+              _pixels[_invertedColsIndex] = _color[0]; // r
+              _pixels[_invertedColsIndex + 1] = _color[1]; // g
+              _pixels[_invertedColsIndex + 2] = _color[2]; // b
+              _pixels[_invertedColsIndex + 3] = _color[3]; // a
+              _labelPixels[_invertedColsIndex] = _label[0]; // r
+              _labelPixels[_invertedColsIndex + 1] = _label[1]; // g
+              _labelPixels[_invertedColsIndex + 2] = _label[2]; // b
+              _labelPixels[_invertedColsIndex + 3] = _label[3]; // a
+          }
+          else{
+              // invert all
+              var _invertedIndex = _pixelsLength - 1 - _index;
+              _pixels[_invertedIndex - 3] = _color[0]; // r
+              _pixels[_invertedIndex - 2] = _color[1]; // g
+              _pixels[_invertedIndex - 1] = _color[2]; // b
+              _pixels[_invertedIndex] = _color[3]; // a
+              _labelPixels[_invertedIndex - 3] = _label[0]; // r
+              _labelPixels[_invertedIndex - 2] = _label[1]; // g
+              _labelPixels[_invertedIndex - 1] = _label[2]; // b
+              _labelPixels[_invertedIndex] = _label[3]; // a
+          }
 
-        if(this._orientation == "X"){
-            // invert nothing
-            _pixels[_index] = _color[0]; // r
-            _pixels[_index + 1] = _color[1]; // g
-            _pixels[_index + 2] = _color[2]; // b
-            _pixels[_index + 3] = _color[3]; // a
-            _labelPixels[_index] = _label[0]; // r
-            _labelPixels[_index + 1] = _label[1]; // g
-            _labelPixels[_index + 2] = _label[2]; // b
-            _labelPixels[_index + 3] = _label[3]; // a
-        }
-        else if(this._orientation == "Y"){
-            // invert cols
-            var row = Math.floor(_index/(_sliceWidth*4));
-            var col = _index - row*_sliceWidth*4;
-            var invCol = 4*(_sliceWidth-1) - col ;
-            var _invertedColsIndex = row*_sliceWidth*4 + invCol;
-            _pixels[_invertedColsIndex] = _color[0]; // r
-            _pixels[_invertedColsIndex + 1] = _color[1]; // g
-            _pixels[_invertedColsIndex + 2] = _color[2]; // b
-            _pixels[_invertedColsIndex + 3] = _color[3]; // a
-            _labelPixels[_invertedColsIndex] = _label[0]; // r
-            _labelPixels[_invertedColsIndex + 1] = _label[1]; // g
-            _labelPixels[_invertedColsIndex + 2] = _label[2]; // b
-            _labelPixels[_invertedColsIndex + 3] = _label[3]; // a
-        }
-        else{
-            // invert all
-            var _invertedIndex = _pixelsLength - 1 - _index;
-            _pixels[_invertedIndex - 3] = _color[0]; // r
-            _pixels[_invertedIndex - 2] = _color[1]; // g
-            _pixels[_invertedIndex - 1] = _color[2]; // b
-            _pixels[_invertedIndex] = _color[3]; // a
-            _labelPixels[_invertedIndex - 3] = _label[0]; // r
-            _labelPixels[_invertedIndex - 2] = _label[1]; // g
-            _labelPixels[_invertedIndex - 1] = _label[2]; // b
-            _labelPixels[_invertedIndex] = _label[3]; // a
-        }
+          _index += 4; // increase by 4 units for r,g,b,a
 
-        _index += 4; // increase by 4 units for r,g,b,a
+          } while (_index < _pixelsLength);
 
-        } while (_index < _pixelsLength);
+          // store the generated image data to the frame buffer context
+          _imageFBContext.putImageData(_imageData, 0, 0);
+          _labelFBContext.putImageData(_labelmapData, 0, 0);
 
-        // store the generated image data to the frame buffer context
-        _imageFBContext.putImageData(_imageData, 0, 0);
-        _labelFBContext.putImageData(_labelmapData, 0, 0);
+          // cache the current slice index and other values
+          // which might require a redraw
+          this._currentSlice = _currentSlice;
+          this._lowerThreshold = _lowerThreshold;
+          this._upperThreshold = _upperThreshold;
+          this._windowLow = _windowLow;
+          this._windowHigh = _windowHigh;
 
-        // cache the current slice index and other values
-        // which might require a redraw
-        this._currentSlice = _currentSlice;
-        this._lowerThreshold = _lowerThreshold;
-        this._upperThreshold = _upperThreshold;
-        this._windowLow = _windowLow;
-        this._windowHigh = _windowHigh;
+          if (_currentLabelMap) {
 
-        if (_currentLabelMap) {
+            // only update the setting if we have a labelmap
+            this._labelmapShowOnlyColor = _labelmapShowOnlyColor;
 
-        // only update the setting if we have a labelmap
-        this._labelmapShowOnlyColor = _labelmapShowOnlyColor;
-
-        }
+          }
 
     }
 

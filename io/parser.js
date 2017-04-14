@@ -929,27 +929,49 @@ X.parser.reslice2 = function(_sliceOrigin, _sliceXYSpacing, _sliceNormal, _color
 
           // color table!
           norm_val = pixval;
-          if (object instanceof X.labelmap) {
-
-            // check to see if it is a parametric overlay -> need specific colortable
-            if(object._parametric) {
-              // normalize the negative values between 0-127 (0:len(keys_)/2-1)
-              // positive values between 128 and 255 (len(keys_)/2 : 255)
-              numColors = colorTable.keys_.length; 
-              
-              if (Math.round(pixval) <= object._paramMin) {
-                _rangeMax = Math.abs(object._min);
-                _rangeMin = Math.abs(object._paramMin);
-                norm_val = Math.round((numColors/2)-1 + ((Math.abs(pixval)-_rangeMin)*(-(numColors/2)-1)/(_rangeMax - _rangeMin)));
+          if (!isNaN(pixval)) {
+            
+            if (object instanceof X.labelmap) {
+              // check to see if it is a parametric overlay -> need specific colortable
+              if(object._parametric) {
+                // normalize the negative values between 0-127 (0:len(keys_)/2-1)
+                // positive values between 128 and 255 (len(keys_)/2 : 255)
+                numColors = colorTable.keys_.length; 
+                
+                if (Math.round(pixval) <= object._paramMin) {
+                  _rangeMax = Math.abs(object._min);
+                  _rangeMin = Math.abs(object._paramMin);
+                  norm_val = Math.round((numColors/2)-1 + ((Math.abs(pixval)-_rangeMin)*(-(numColors/2)-1)/(_rangeMax - _rangeMin)));
+                }
+                else if(Math.round(pixval) >= object._paramMax){
+                  _rangeMax = object._max;
+                  _rangeMin = object._paramMax;
+                  norm_val = Math.round((numColors/2) + ((Math.abs(pixval)-_rangeMin)*(((numColors)-1)-(numColors/2))/(_rangeMax - _rangeMin))); 
+                }
               }
-              else if(Math.round(pixval) >= object._paramMax){
-                _rangeMax = object._max;
-                _rangeMin = object._paramMax;
-                norm_val = Math.round((numColors/2) + ((Math.abs(pixval)-_rangeMin)*(((numColors)-1)-(numColors/2))/(_rangeMax - _rangeMin))); 
+            }
+            else {
+              if(object._parametric) {
+                // normalize the negative values between 0-127 (0:len(keys_)/2-1)
+                // positive values between 128 and 255 (len(keys_)/2 : 255)
+                numColors = colorTable.keys_.length; 
+                
+                if (Math.round(pixval) <= 0) {
+                  _rangeMax = Math.abs(object._min);
+                  _rangeMin = 0;
+                  norm_val = Math.round((numColors/2)-1 + ((Math.abs(pixval)-_rangeMin)*(-(numColors/2)-1)/(_rangeMax - _rangeMin)));
+                }
+                else if(Math.round(pixval) > 0){
+                  _rangeMax = object._max;
+                  _rangeMin = 0;
+                  norm_val = Math.round((numColors/2) + ((Math.abs(pixval)-_rangeMin)*(((numColors)-1)-(numColors/2))/(_rangeMax - _rangeMin))); 
+                }
+              }
+              else {
+                norm_val = Math.round(255 * (pixval - object._min)/(object._max - object._min))
               }
             }
           }
-
           var lookupValue = colorTable.get(norm_val);
           // check for out of range and use a transparent label in this case
           if (!lookupValue) { 

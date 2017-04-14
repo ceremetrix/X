@@ -413,6 +413,7 @@ X.volume.prototype.copy_ = function(volume) {
   this._volumeRenderingOld = volume._volumeRenderingOld;
   this._volumeRenderingDirection = volume._volumeRenderingDirection;
   this._labelmap = volume._labelmap;
+  this._colortable = volume._colortable;
   this._borders = volume._borders;
 
   // call the superclass' modified method
@@ -446,6 +447,8 @@ X.volume.prototype.create_ = function(_info) {
   this._IJKToRAS = _info.IJKToRAS;
   this._RASToIJK = _info.RASToIJK;
   this._max = _info.max;
+  //this._windowLow = _info.windowLow;
+  //this._windowHigh = _info.windowHigh;
   this._paramMax = _info.paramMax;
   this._paramMin = _info.paramMin;
   this._data = _info.data;
@@ -580,6 +583,7 @@ X.volume.prototype.slicing_ = function() {
       _sliceOrigin[0] = this._childrenInfo[xyz]._solutionsLine[0][0][0] + this._childrenInfo[xyz]._sliceDirection[0]*parseInt(currentIndex, 10);
       _sliceOrigin[1] = this._childrenInfo[xyz]._solutionsLine[0][0][1] + this._childrenInfo[xyz]._sliceDirection[1]*parseInt(currentIndex, 10);
       _sliceOrigin[2] = this._childrenInfo[xyz]._solutionsLine[0][0][2] + this._childrenInfo[xyz]._sliceDirection[2]*parseInt(currentIndex, 10);
+      
 
       //attach labelmap
       if(this.hasLabelMap){
@@ -589,7 +593,14 @@ X.volume.prototype.slicing_ = function() {
         this._labelmap._children[xyz].modified(true);
       }
 
-      var _slice = X.parser.reslice2(_sliceOrigin, this._childrenInfo[xyz]._sliceXYSpacing, this._childrenInfo[xyz]._sliceNormal, this._childrenInfo[xyz]._color, this._BBox, this._IJKVolume, this, true, null);
+      if (goog.isDefAndNotNull(this._colortable)) { 
+        colormap = this._colortable._map;
+      }
+      else {
+        colormap = null
+      }
+
+      var _slice = X.parser.reslice2(_sliceOrigin, this._childrenInfo[xyz]._sliceXYSpacing, this._childrenInfo[xyz]._sliceNormal, this._childrenInfo[xyz]._color, this._BBox, this._IJKVolume, this, true, colormap);
 
       if(this.hasLabelMap){
         _slice._labelmap = _slice._texture;
@@ -1534,7 +1545,14 @@ X.volume.prototype.sliceInfoChanged = function(index){
     this._labelmap._children[index].modified();
   }
 
-  var _slice = X.parser.reslice2(this._childrenInfo[index]._sliceOrigin, this._childrenInfo[index]._sliceXYSpacing, this._childrenInfo[index]._sliceNormal, this._childrenInfo[index]._color, this._BBox, this._IJKVolume, this, true, null);
+  if (goog.isDefAndNotNull(this._colortable)) { 
+    colormap = this._colortable._map;
+  }
+  else {
+    colormap = null
+  }
+
+  var _slice = X.parser.reslice2(this._childrenInfo[index]._sliceOrigin, this._childrenInfo[index]._sliceXYSpacing, this._childrenInfo[index]._sliceNormal, this._childrenInfo[index]._color, this._BBox, this._IJKVolume, this, true, colormap);
 
   window.console.log('modified!');
 
@@ -1671,6 +1689,13 @@ X.volume.prototype.volumeRendering_ = function(direction) {
     //
     // THE FOLLOWING IS UNROLLED AND THIS PROBABLY COULD BE OPTIMIZED
     //
+    
+    if (goog.isDefAndNotNull(this._colortable)) { 
+      colormap = this._colortable._map;
+    }
+    else {
+      colormap = null
+    }
 
     var i;
     for (i = 0; i < 1*quarters; i++) {
@@ -1693,7 +1718,7 @@ X.volume.prototype.volumeRendering_ = function(direction) {
           this._labelmap._children[direction].modified(true);
         }
 
-        var _slice = X.parser.reslice2(_sliceOrigin, this._childrenInfo[direction]._sliceXYSpacing, this._childrenInfo[direction]._sliceNormal, this._childrenInfo[direction]._color, this._BBox, this._IJKVolume, this, true, null);
+        var _slice = X.parser.reslice2(_sliceOrigin, this._childrenInfo[direction]._sliceXYSpacing, this._childrenInfo[direction]._sliceNormal, this._childrenInfo[direction]._color, this._BBox, this._IJKVolume, this, true, colormap);
         _slice._children[0]._visible = false;
 
         if(this.hasLabelMap){
@@ -1738,7 +1763,7 @@ X.volume.prototype.volumeRendering_ = function(direction) {
             this._labelmap._children[direction].modified(true);
           }
 
-          var _slice = X.parser.reslice2(_sliceOrigin, this._childrenInfo[direction]._sliceXYSpacing, this._childrenInfo[direction]._sliceNormal, this._childrenInfo[direction]._color, this._BBox, this._IJKVolume, this, true, null);
+          var _slice = X.parser.reslice2(_sliceOrigin, this._childrenInfo[direction]._sliceXYSpacing, this._childrenInfo[direction]._sliceNormal, this._childrenInfo[direction]._color, this._BBox, this._IJKVolume, this, true, colormap);
           _slice._children[0]._visible = false;
 
           if(this.hasLabelMap){
@@ -1782,7 +1807,7 @@ X.volume.prototype.volumeRendering_ = function(direction) {
               this._labelmap._children[direction].modified(true);
             }
 
-            var _slice = X.parser.reslice2(_sliceOrigin, this._childrenInfo[direction]._sliceXYSpacing, this._childrenInfo[direction]._sliceNormal, this._childrenInfo[direction]._color, this._BBox, this._IJKVolume, this, true, null);
+            var _slice = X.parser.reslice2(_sliceOrigin, this._childrenInfo[direction]._sliceXYSpacing, this._childrenInfo[direction]._sliceNormal, this._childrenInfo[direction]._color, this._BBox, this._IJKVolume, this, true, colormap);
             _slice._children[0]._visible = false;
 
             if(this.hasLabelMap){
@@ -1827,7 +1852,7 @@ X.volume.prototype.volumeRendering_ = function(direction) {
                 this._labelmap._children[direction].modified(true);
               }
 
-              var _slice = X.parser.reslice2(_sliceOrigin, this._childrenInfo[direction]._sliceXYSpacing, this._childrenInfo[direction]._sliceNormal, this._childrenInfo[direction]._color, this._BBox, this._IJKVolume, this, true, null);
+              var _slice = X.parser.reslice2(_sliceOrigin, this._childrenInfo[direction]._sliceXYSpacing, this._childrenInfo[direction]._sliceNormal, this._childrenInfo[direction]._color, this._BBox, this._IJKVolume, this, true, colormap);
               _slice._children[0]._visible = false;
 
               if(this.hasLabelMap){

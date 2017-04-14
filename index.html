@@ -45,18 +45,18 @@
 
             // create a volume
             var volume = new X.volume();
-            volume.file = "/../Images/Patient01_zScores.nii";
-            volume.parametric = true;
+            volume.file = "/../Images/Patient01_masked.nii";
+            //volume.parametric = false;
             //volume.colortable.file = "/../Images/HeatMap.txt";
             
             //volume.file = "/../Images/MRI_Template.nii"; // MRI file
-            //volume.labelmap.file = "/../Images/Patient01_clusterSTD.nii";
-            //volume.labelmap.parametric = true;
+            volume.labelmap.file = "/../Images/Patient01_clusterSTD.nii";
+            volume.labelmap.parametric = true;
             //volume.labelmap.file = "/../Images/Patient01.norm.nii";
             //volume.labelmap.colortable.file = "/../Images/MRI_colorTable.txt";
-            //volume.labelmap.colortable.file  = "/../Images/HeatMap.txt";
+            volume.labelmap.colortable.file  = "/../Images/ParametricColortable.txt";
             //volume.labelmap.opacity = 0.6;
-            volume.opacity = 0.3;
+            volume.labelmap.opacity = 0.9;
   
             //var volume2 = new X.volume();
             //volume2.file = "/../Images/Patient01.norm.nii"
@@ -111,7 +111,7 @@
                 
                 //r.setColortable(2);
                 r.render();
-                //volume.lowerThreshold = 1;
+                //volume.lowerThreshold = 0.5;
                 //volume.opacity = 0.1;
                 //volume.volumeRendering = true;
                 
