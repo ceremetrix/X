@@ -594,10 +594,10 @@ X.volume.prototype.slicing_ = function() {
       }
 
       if (goog.isDefAndNotNull(this._colortable)) { 
-        colormap = this._colortable._map;
+        var colormap = this._colortable._map;
       }
       else {
-        colormap = null
+        var colormap = null
       }
 
       var _slice = X.parser.reslice2(_sliceOrigin, this._childrenInfo[xyz]._sliceXYSpacing, this._childrenInfo[xyz]._sliceNormal, this._childrenInfo[xyz]._color, this._BBox, this._IJKVolume, this, true, colormap);
@@ -1546,10 +1546,10 @@ X.volume.prototype.sliceInfoChanged = function(index){
   }
 
   if (goog.isDefAndNotNull(this._colortable)) { 
-    colormap = this._colortable._map;
+    var colormap = this._colortable._map;
   }
   else {
-    colormap = null
+    var colormap = null
   }
 
   var _slice = X.parser.reslice2(this._childrenInfo[index]._sliceOrigin, this._childrenInfo[index]._sliceXYSpacing, this._childrenInfo[index]._sliceNormal, this._childrenInfo[index]._color, this._BBox, this._IJKVolume, this, true, colormap);
@@ -1691,10 +1691,10 @@ X.volume.prototype.volumeRendering_ = function(direction) {
     //
     
     if (goog.isDefAndNotNull(this._colortable)) { 
-      colormap = this._colortable._map;
+      var colormap = this._colortable._map;
     }
     else {
-      colormap = null
+      var colormap = null
     }
 
     var i;

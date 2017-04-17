@@ -55,13 +55,14 @@
             //volume.labelmap.file = "/../Images/Patient01.norm.nii";
             //volume.labelmap.colortable.file = "/../Images/MRI_colorTable.txt";
             volume.labelmap.colortable.file  = "/../Images/ParametricColortable.txt";
+            //volume.labelmap.visible = false;
             //volume.labelmap.opacity = 0.6;
-            volume.labelmap.opacity = 0.9;
+            //volume.labelmap.opacity = 0.9;
   
             //var volume2 = new X.volume();
             //volume2.file = "/../Images/Patient01.norm.nii"
             //volume2.opacity = 0.3; 
-
+/*
             var mesh = new X.mesh();
             mesh.file = "/../Images/clusters.vtk";
             mesh.color = [0.7, 0.25, 0.25];
@@ -71,7 +72,7 @@
             mesh2.file = "/../Images/clusters_NEW.vtk";
             mesh2.color = [1, 0.4, 0.7];
             mesh2.opacity = 1;
-
+*/
             // Windowing doesn't seem to do much yet, but 
             // thresholding does! LL 1.27.17
             
@@ -101,10 +102,10 @@
 
                 r.add(volume);
                 
-                r.setColortable(0);
-                sliceX.setColortable(0);
-                sliceY.setColortable(0);
-                sliceZ.setColortable(0);
+                //r.setColortable(0);
+                //sliceX.setColortable(0);
+                //sliceY.setColortable(0);
+                //sliceZ.setColortable(0);
                 //r.setLabelmapColortable(1);
                 //r.add(mesh);
                 //r.add(mesh2);
@@ -127,6 +128,11 @@
             r.camera.position = [0, 0, 200];
             
         };
+        global.volume = volume;
+        global.ren3d = ren3d;
+        global.sliceX = sliceX;
+        global.sliceY = sliceY;
+        global.sliceZ = sliceZ;
     </script>
 
 </head>

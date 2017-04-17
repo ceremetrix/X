@@ -1245,7 +1245,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
               // current intensity is inside the threshold range so use the real
               // intensity
 
-              if (!_colortable) {
+              if (_colortable) {
                 _color = [_origIntensityR,
                          _origIntensityG,
                          _origIntensityB,
