@@ -196,6 +196,22 @@ X.renderer2D = function() {
   this._labelmapShowOnlyColor = new Float32Array([-255, -255, -255, -255]);
 
   /**
+   * The buffer for current volume colortable (LL added)
+   * 
+   * @type {?string}
+   * @protected
+   */
+  this._volumeColortable = null;
+
+  /**
+   * The buffer for current labelmap colortable (LL added)
+   * 
+   * @type {?string}
+   * @protected
+   */
+  this._labelmapColortable = null;
+
+  /**
    * The convention we follow to draw the 2D slices. TRUE for RADIOLOGY, FALSE for NEUROLOGY.
    *
    * @type {!boolean}
@@ -1127,6 +1143,11 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
     var _windowLow = _volume._windowLow;
     var _windowHigh = _volume._windowHigh;
 
+    var _volumeColortable = _volume._colortable._file;
+    if(_currentLabelMap) {
+      var _labelmapColortable = _currentLabelMap._colortable._file;
+    }
+
     // caching mechanism
     // we need to redraw the pixels only
     // - if the _currentSlice has changed
@@ -1136,6 +1157,8 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
     // LL from D.B.: redraw if colArray or currentSliceId has changed
     var _redraw_required = (this._colArrayChanged == true ||
         this._labelArrayChanged == true ||
+        this._volumeColortable != _volumeColortable ||
+        this._labelmapColortable != _labelmapColortable ||
         this._currentSliceId != _currentSliceId ||
         this._currentSlice != _currentSlice ||
         this._lowerThreshold != _lowerThreshold ||
@@ -1355,11 +1378,13 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
           this._upperThreshold = _upperThreshold;
           this._windowLow = _windowLow;
           this._windowHigh = _windowHigh;
+          this._volumeColortable = _volumeColortable;
 
           if (_currentLabelMap) {
 
             // only update the setting if we have a labelmap
             this._labelmapShowOnlyColor = _labelmapShowOnlyColor;
+            this._labelmapColortable = _labelmapColortable;
 
           }
 
