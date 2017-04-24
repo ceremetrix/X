@@ -871,7 +871,7 @@ X.parser.reslice2 = function(_sliceOrigin, _sliceXYSpacing, _sliceNormal, _color
   var textureSize = 4 * _csize;
   // LL change: so texture can have - values:
   //var textureForCurrentSlice = new Uint8Array(textureSize);
-  var textureForCurrentSlice = new Int16Array(textureSize);
+  var textureForCurrentSlice = new Float32Array(textureSize);
   var pixelTexture = new X.texture();
   pixelTexture._rawDataWidth = _cswidth;
   pixelTexture._rawDataHeight = _csheight;
@@ -924,13 +924,13 @@ X.parser.reslice2 = function(_sliceOrigin, _sliceXYSpacing, _sliceNormal, _color
         var pixelValue_g = 0;
         var pixelValue_b = 0;
         var pixelValue_a = 0;
-
+/*
         if (colorTable) {
 
           // color table!
           var norm_val = pixval;
           if (!isNaN(pixval)) {
-            
+           
             if (object instanceof X.labelmap) {
               // check to see if it is a parametric overlay -> need specific colortable
               if(object._parametric) {
@@ -984,11 +984,12 @@ X.parser.reslice2 = function(_sliceOrigin, _sliceXYSpacing, _sliceNormal, _color
           pixelValue_a = 255 * lookupValue[4];
 
         }
-        else {
+        else {*/
           // normalization should not happen here, only in the shaders/canvas??
-          pixelValue_r = pixelValue_g = pixelValue_b = 255 * ((pixval - object._min )/ (object._max - object._min));
+          //pixelValue_r = pixelValue_g = pixelValue_b = 255 * ((pixval - object._min )/ (object._max - object._min));
+          pixelValue_r = pixelValue_g = pixelValue_b = pixval; // <-- NOT Normalized!!
           pixelValue_a = 255;
-        }
+        //}
 
         textureForCurrentSlice[textureStartIndex] = pixelValue_r;
         textureForCurrentSlice[++textureStartIndex] = pixelValue_g;

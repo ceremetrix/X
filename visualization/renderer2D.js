@@ -1099,7 +1099,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
     var _labelmap = _volume._labelmap;
     var _labelmapShowOnlyColor = null;
     var _colortable = _volume._colortable;
-
+    
     if (_labelmap) {
 
         // since there is a labelmap, get the showOnlyColor property
@@ -1151,7 +1151,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
     if(goog.isDefAndNotNull(_volume._colortable)) {
       _volumeColortable = _volume._colortable.file;
     }
-    if(goog.isDefAndNotNull(_volume._labelmap._colortable)) {
+    if(goog.isDefAndNotNull(_volume._labelmap)) {
       _labelmapColortable = _volume._labelmap._colortable.file;
     }
 
@@ -1207,13 +1207,9 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
           // LL custom code, similar to D.B. but important differences:
           //
 
-          // apply window/level (already applied if colortable exists)
+          // apply window/level (already applied if colortable exists) <--nope
           var _window = _windowHigh - _windowLow;
           var _level = _window/2 + _windowLow;
-
-          if (_intensityR>10 && _intensityB>10){
-            // do nothing
-          }
           
           var _origIntensity = 0;
           var _origIntensityR = 0;
@@ -1222,13 +1218,16 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
           var _origIntensityA = 0;
 
           if (_colortable){
+            // Colortable for the volume
             // The intensity (texture) is already normalized from parser.js if colortable present,
+            var colorTable = _colortable._map;
             var _intensity = _sliceData[_index];
+            /*
             var _intensityR = _sliceData[_index];
             var _intensityG = _sliceData[_index + 1];
             var _intensityB = _sliceData[_index + 2];
             var _intensityA = _sliceData[_index + 3];
-
+            
             _origIntensity  = _intensity;
             _origIntensityR = _intensityR;
             _origIntensityG = _intensityG;
@@ -1239,13 +1238,76 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                          _origIntensityG,
                          _origIntensityB,
                          _origIntensityA];
+            */
+            var norm_val = 0;
+            if(_intensity < _level - _window/2 ){
+                  _origIntensity = 0;
+                  _origIntensityR = 0;
+                  _origIntensityG = 0;
+                  _origIntensityB = 0;
+                  _origIntensityA = 0; // should the alpha be 0 or 255?? -LL
+            }
+            else if(_intensity > _level + _window/2 ){
+                  _origIntensity = 255;
+                  _origIntensityR = 255;
+                  _origIntensityG = 255;
+                  _origIntensityB = 255;
+                  _origIntensityA = 255;
+            }
+            else {
+              // Give it time to load colortable and make sure map is defined
+              if(colorTable.map_) {  
+                if(_volume._parametric) {
+                  if(_intensity < -1) {
+                    pause = '';
+                  }
+                  // the raw data was mult. by 100 to preserve decimal places in the texture array, so div by 100
+                  //_intensity = _intensity/100;
+                  // normalize the negative values between 0-127 (0:len(keys_)/2-1)
+                  // positive values between 128 and 255 (len(keys_)/2 : 255)            
+                  numColors = colorTable.keys_.length;
+                  var _rangeMin = 0;
+                  var _rangeMax = 0; 
+                  
+                  if (Math.round(_intensity) <= 0) {
+                    _rangeMax = _windowLow;
+                    _rangeMin = 0;
+                    norm_val = Math.round((numColors/2)-1 - ((Math.abs(_intensity)-_rangeMin)*(-(numColors/2)-1)/(_windowLow - _rangeMin)));
+                  }
+                  else if(Math.round(_intensity) > 0){
+                    _rangeMax = _windowHigh;
+                    _rangeMin = 0;
+                    norm_val = Math.round((numColors/2) + ((Math.abs(_intensity)-_rangeMin)*((numColors-1)-(numColors/2))/(_windowHigh - _rangeMin))); 
+                  }              
+                }
+                else {
+                    norm_val = Math.round(255 * (_intensity - _windowLow)/(_windowHigh - _windowLow));
+                }
+                if(goog.isDefAndNotNull(colorTable.get(norm_val))){
+                  _origIntensityR = 255 * (colorTable.get(norm_val)[1]);
+                  _origIntensityG = 255 * (colorTable.get(norm_val)[2]);
+                  _origIntensityB = 255 * (colorTable.get(norm_val)[3]);
+                  _origIntensityA = 255 * (colorTable.get(norm_val)[4]);
+                }
+                
+              }
+            }
+
           } 
           else{
+              /*
               var _intensity = (_sliceData[_index] / 255) * _fac1 + _volume._min;
               var _intensityR = (_sliceData[_index] / 255) * _fac1 + _volume._min;
               var _intensityG = (_sliceData[_index + 1] / 255) * _fac1 + _volume._min;
               var _intensityB = (_sliceData[_index + 2] / 255) * _fac1 + _volume._min;
               var _intensityA = (_sliceData[_index + 3] / 255) * _fac1 + _volume._min;
+              */
+              // No longer normalized in parser, so jus take intensity value:
+              var _intensity = _sliceData[_index];
+              var _intensityR = _sliceData[_index];
+              var _intensityG = _sliceData[_index + 1];
+              var _intensityB = _sliceData[_index + 2];
+              var _intensityA = _sliceData[_index + 3];
           
               if(_intensity < _level - _window/2 ){
                   _origIntensity = 0;
@@ -1276,7 +1338,12 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
 
               // current intensity is inside the threshold range so use the real
               // intensity
+              _color = [_origIntensityR,
+                         _origIntensityG,
+                         _origIntensityB,
+                         _origIntensityA];
 
+          /*
               if (_colortable) {
                 _color = [_origIntensityR,
                          _origIntensityG,
@@ -1289,44 +1356,72 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                         this._colArrayCURRENT[_origIntensityB][2],
                         255];
               }
+          */
 
               if (_currentLabelMap) {
 
                 // we have a label map here
-                var _labelmapOpacity = _volume._labelmap._opacity; // LL added
+                
+                var _labelColortable = _labelmap._colortable;
+                var label_colorTable = _labelColortable._map;
+    
+                var _labelmapOpacity = _labelmap._opacity; // LL added
                 var _labelOpacity = _labelData[_index+ 3]; // or * _labelmapOpacity?
-                // check if all labels are shown or only one
-                if (_labelmapShowOnlyColor[3] == -255) {
+                var _labelVal = _labelData[_index];
 
-                    // all labels are shown
-                    _label = [_labelData[_index], _labelData[_index + 1],
-                            _labelData[_index + 2], _labelOpacity];
-                    // LL added:
-                    if(_label[0] == 0 && _label[1] == 0 && _label[2] == 0){
-                      _label[3] = 0;
-                    };
+                var _labelMin = _labelmap._min;
+                var _labelMax = _labelmap._max;
+                var _labelWindowLow = _labelmap._windowLow;
+                var _labelWindowHigh = _labelmap._windowHigh;
 
-                } else {
+                if (_volume._labelmap._parametric) {
 
-                  // show only the label which matches in color
-                  if (X.array.compare(_labelmapShowOnlyColor, _labelData, 0, _index,
-                      4)) {
-
-                    // this label matches
-                    _label = [_labelData[_index], _labelData[_index + 1],
-                                _labelData[_index + 2], _labelOpacity];
-                    // LL added:
-                    if(_label[0] == 0 && _label[1] == 0 && _label[2] == 0){
-                      _label[3] = 0;
-                    };
-
+                  var labelColors = label_colorTable.keys_.length;
+                  var _rangeMin = 0;
+                  var _rangeMax = 0; 
+                  var lookup_val = 0;
+                  
+                  if (Math.round(_labelVal) < 0) {
+                    _rangeMin = _labelWindowLow;
+                    _rangeMax = _labelmap._paramMin;
+                    lookup_val = Math.round(((_labelVal)-_rangeMin)*((labelColors/2)-1)/(_rangeMax - _rangeMin));
                   }
-
+                  else if(Math.round(_labelVal) > 0){
+                    _rangeMax = _labelWindowHigh;
+                    _rangeMin = _labelmap._paramMax;
+                    lookup_val = Math.round((labelColors/2) + ((_labelVal-_rangeMin)*((labelColors-1)-(labelColors/2))/(_rangeMax - _rangeMin))); 
+                  }              
+                }
+                else {
+                    lookup_val = Math.round(255 * (_labelVal - _labelWindowLow)/(_labelWindowHigh - _labelWindowLow));
+                }
+                if(goog.isDefAndNotNull(label_colorTable.get(lookup_val))){
+                  _labelR = 255 * (label_colorTable.get(lookup_val)[1]);
+                  _labelG = 255 * (label_colorTable.get(lookup_val)[2]);
+                  _labelB = 255 * (label_colorTable.get(lookup_val)[3]);
+                  _labelA = 255 * (label_colorTable.get(lookup_val)[4]);
                 }
 
               }
 
-          }
+                // check if all labels are shown or only one
+                if (_labelmapShowOnlyColor[3] == -255) {
+
+                    // all labels are shown         
+                  
+                    _label = [_labelR, _labelG, _labelB, _labelA];
+
+                } else {
+
+                  // show only the label which matches in color
+                  if (X.array.compare(_labelmapShowOnlyColor, _labelData, 0, _index, 4)) {
+                    // this label matches
+                    _label = [_labelR, _labelG, _labelB, _labelA];
+                  }
+
+                }
+              }
+
           // LL added else statement - why wasn't this here??
           // ans: apparently doesn't do anything, but yet to break anything
           //else{

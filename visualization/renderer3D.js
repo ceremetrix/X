@@ -1013,9 +1013,9 @@ X.renderer3D.prototype.update_ = function(object) {
             var bIndex = Math.min(texture._rawData[i+2], this._labelArrayCURRENT.length - 1);
             var bIndex = Math.max(bIndex, 0);
 
-            dst[i] = this._labelArrayCURRENT[rIndex][0];
-            dst[i+1] = this._labelArrayCURRENT[gIndex][1];
-            dst[i+2] = this._labelArrayCURRENT[bIndex][2];
+            dst[i] = this._labelArrayCURRENT[Math.round(rIndex)][0];
+            dst[i+1] = this._labelArrayCURRENT[Math.round(gIndex)][1];
+            dst[i+2] = this._labelArrayCURRENT[Math.round(bIndex)][2];
 
 
             
