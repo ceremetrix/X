@@ -199,6 +199,28 @@ X.object.prototype.__defineGetter__('colortable', function() {
 
 
 /**
+ * The color table associated with this object.
+ *
+ * @return {?X.colortable} The color table.
+ */
+X.object.prototype.__defineSetter__('colortable', function(colortable) {
+
+    var loader = new X.loader();
+    loader.load(colortable, this);
+    this._colortable = colortable;
+    this._file.dirty =  true;    
+
+    //this._colortable._file = colortable.file;
+    //loader = new X.loader();
+    //loader.load(colortable, this);
+    
+    
+    //this.modified();
+
+});
+
+
+/**
  * The scalars associated with this object.
  *
  * @return {?X.scalars} The scalars.

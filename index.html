@@ -18,33 +18,46 @@
         goog.require('X.mesh');
         goog.require('X.labelmap');
 
+        var myObjs = {};
+
         window.onload = function () {
 
             // create and initialize a 3D renderer
-            var r = new X.renderer3D();
+            r = new X.renderer3D();
             r.container = '3d';
             r.init();
 
             // create the 2D renderers
             // .. for the X orientation
-            var sliceX = new X.renderer2D();
+            sliceX = new X.renderer2D();
             sliceX.container = 'sag';
             sliceX.orientation = 'X';
             //sliceX.bgcolor = [255,255,255];
             sliceX.init();
             // .. for Y
-            var sliceY = new X.renderer2D();
+            sliceY = new X.renderer2D();
             sliceY.container = 'cor';
             sliceY.orientation = 'Y';
             sliceY.init();
             // .. and for Z
-            var sliceZ = new X.renderer2D();
+            sliceZ = new X.renderer2D();
             sliceZ.container = 'ax';
             sliceZ.orientation = 'Z';
             sliceZ.init();
 
+            // Create and load the colortables:
+            loader = new X.loader();
+
+            heatMap = new X.colortable();
+            heatMap.file = "/../Images/HeatMap.txt";
+            //loader.load(heatMap, heatMap);
+
+            parametric = new X.colortable();
+            parametric.file = "/../Images/ParametricColortable.txt";
+            //loader.load(parametric, parametric);
+
             // create a volume
-            var volume = new X.volume();
+            volume = new X.volume();
             volume.file = "/../Images/Patient01_masked.nii";
             //volume.parametric = false;
             //volume.colortable.file = "/../Images/HeatMap.txt";
@@ -54,7 +67,7 @@
             volume.labelmap.parametric = true;
             //volume.labelmap.file = "/../Images/Patient01.norm.nii";
             //volume.labelmap.colortable.file = "/../Images/MRI_colorTable.txt";
-            volume.labelmap.colortable.file  = "/../Images/ParametricColortable.txt";
+            volume.labelmap.colortable.file  = parametric.file;
             //volume.labelmap.visible = false;
             //volume.labelmap.opacity = 0.6;
             //volume.labelmap.opacity = 0.9;
@@ -128,11 +141,7 @@
             r.camera.position = [0, 0, 200];
             
         };
-        global.volume = volume;
-        global.ren3d = ren3d;
-        global.sliceX = sliceX;
-        global.sliceY = sliceY;
-        global.sliceZ = sliceZ;
+        
     </script>
 
 </head>

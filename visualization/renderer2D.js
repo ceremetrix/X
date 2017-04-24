@@ -678,6 +678,21 @@ X.renderer2D.prototype.update_ = function(object) {
 
   var colortable = object._colortable;
 
+
+  //
+  // COLOR TABLE
+  //
+  if (goog.isDefAndNotNull(colortable) &&
+      goog.isDefAndNotNull(colortable._file) && colortable._file._dirty) {
+
+    // a colortable file is associated to this object and it is dirty..
+    // start loading
+    this._loader.load(colortable, object);
+
+    return;
+
+  }
+
   //
   // LABEL MAP
   //
@@ -695,19 +710,7 @@ X.renderer2D.prototype.update_ = function(object) {
 
   }
 
-  //
-  // COLOR TABLE
-  //
-  if (goog.isDefAndNotNull(colortable) &&
-      goog.isDefAndNotNull(colortable._file) && colortable._file._dirty) {
-
-    // a colortable file is associated to this object and it is dirty..
-    // start loading
-    this._loader.load(colortable, object);
-
-    return;
-
-  }
+  
 
   //
   // VOLUME
@@ -1143,9 +1146,13 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
     var _windowLow = _volume._windowLow;
     var _windowHigh = _volume._windowHigh;
 
-    var _volumeColortable = _volume._colortable._file;
-    if(_currentLabelMap) {
-      var _labelmapColortable = _currentLabelMap._colortable._file;
+    var _volumeColortable = null;
+    var _labelmapColortable = null; 
+    if(goog.isDefAndNotNull(_volume._colortable)) {
+      _volumeColortable = _volume._colortable.file;
+    }
+    if(goog.isDefAndNotNull(_volume._labelmap._colortable)) {
+      _labelmapColortable = _volume._labelmap._colortable.file;
     }
 
     // caching mechanism
@@ -1169,6 +1176,8 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
         .compare(_labelmapShowOnlyColor, this._labelmapShowOnlyColor, 0, 0, 4)));
 
     if (_redraw_required) {
+        this._colArrayChanged = true;
+        this._labelArrayChanged = true;
         // update FBs with new size
         // has to be there, not sure why, too slow to be in main loop?
         var _frameBuffer = this._frameBuffer;
@@ -1562,3 +1571,5 @@ goog.exportSymbol('X.renderer2D.prototype.setColortable',
 		  X.renderer2D.prototype.setColortable);
 goog.exportSymbol('X.renderer2D.prototype.setLabelmapColortable',
 		  X.renderer2D.prototype.setLabelmapColortable);
+goog.exportSymbol('X.renderer2D.prototype.update',
+      X.renderer2D.prototype.update);
