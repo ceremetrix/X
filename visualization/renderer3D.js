@@ -639,9 +639,21 @@ X.renderer3D.prototype.resetTextures = function(){
 	      }
 	    }
     }
-
-    //_volume._texture._dirty = true;
     this.update_(_volume);
+
+    if (goog.isDefAndNotNull(_volume._labelmap)) {
+      var _labelmap = _volume._labelmap;
+
+      for (var i = 0; i < _labelmap._children.length; i++){ 
+        for(var j = 0; j < _labelmap._children[i]._children.length; j++){
+          if(_labelmap._children[i]._children[j]){
+            _labelmap._children[i]._children[j]._texture._dirty = true;
+          }
+        }
+      }
+      this.update_(_labelmap);
+    }
+    //_volume._texture._dirty = true;
 
 
 };
@@ -930,102 +942,203 @@ X.renderer3D.prototype.update_ = function(object) {
           
         }
         // LL added from D.B. version: -----------------
-		var dst = new Uint8Array(texture._rawData); //LL: not Uint8Array
-		//console.log(dst);
+        var dst = new Uint8Array(texture._rawData); //LL: not Uint8Array
 
-    // LL added: variables for windowing/thresholding:
-    var _windowLow = object._volume._windowLow;
-    var _windowHigh = object._volume._windowHigh;
-    var _lowerThreshold = object._volume._lowerThreshold;
-    var _upperThreshold = object._volume._upperThreshold;
-    var _fac1 = object._volume._max - object._volume._min;
-    var _volumeOpacity = object._volume._opacity;
+        // LL added: variables for windowing/thresholding:
+        var _windowLow = object._volume._windowLow;
+        var _windowHigh = object._volume._windowHigh;
+        var _lowerThreshold = object._volume._lowerThreshold;
+        var _upperThreshold = object._volume._upperThreshold;
+        var _fac1 = object._volume._max - object._volume._min;
+        var _volumeOpacity = object._volume._opacity;
+        var _paramMin = object._volume._paramMin;
+        var _paramMax = object._volume._paramMax;
 
-		for(var i = 0; i < dst.length; i+=4){
-            // Get original intensities - maybe don't normalize in parser? -LL
-            var _intensity = (texture._rawData[i] / 255) * _fac1 + object._volume._min;
+        for(var i = 0; i < dst.length; i+=4){
+            // Get original intensities <- not normalized in parser anymore -LL
+            var _intensity = texture._rawData[i];
+            var _intensityR = texture._rawData[i];
+            var _intensityG = texture._rawData[i + 1];
+            var _intensityB = texture._rawData[i + 2];
+            /*
             var _intensityR = (texture._rawData[i] / 255) * _fac1 + object._volume._min;
             var _intensityG = (texture._rawData[i + 1] / 255) * _fac1 + object._volume._min;
             var _intensityB = (texture._rawData[i + 2] / 255) * _fac1 + object._volume._min;
-
-		    if(!isLabelMap){
-            // apply window/level:
-            var _window = _windowHigh - _windowLow;
-            var _level = _window/2 + _windowLow;
-
+            */
             var _origIntensity = 0;
             var _origIntensityR = 0;
             var _origIntensityG = 0;
             var _origIntensityB = 0;
             var _origIntensityA = 0;
 
-            if(_intensity < _level - _window/2 ){
-                _origIntensity = 0;
-                _origIntensityR = 0;
-                _origIntensityG = 0;
-                _origIntensityB = 0;
-                _origIntensityA = 0; // should the alpha be 0 or 255?? -LL
-            }
-            else if(_intensity > _level + _window/2 ){
-                _origIntensity = 255;
-                _origIntensityR = 255;
-                _origIntensityG = 255;
-                _origIntensityB = 255;
-                _origIntensityA = 255;
-            }
-            else{
-                _origIntensity  = Math.round(255 * (_intensity - (_level - _window / 2))/_window);
-                _origIntensityR = Math.round(255 * (_intensityR - (_level - _window / 2))/_window);
-                _origIntensityG = Math.round(255 * (_intensityG - (_level - _window / 2))/_window);
-                _origIntensityB = Math.round(255 * (_intensityB - (_level - _window / 2))/_window);
-                if (goog.isDefAndNotNull(_volumeOpacity)){  // LL added for multiple volumes
-                    _origIntensityA = 255 * _volumeOpacity; 
+            if(!isLabelMap){
+              // apply window/level:
+              var _window = _windowHigh - _windowLow;
+              var _level = _window/2 + _windowLow;
+
+              if (object._volume._colortable) {
+                var colorTable = object._volume._colortable._map;
+                var norm_val = 0;          
+
+                if(_intensity < _level - _window/2 ){
+                    _origIntensity = 0;
+                    _origIntensityR = 0;
+                    _origIntensityG = 0;
+                    _origIntensityB = 0;
+                    _origIntensityA = 0;
                 }
-                else{
+                else if(_intensity > _level + _window/2 ){
+                    _origIntensity = 255;
+                    _origIntensityR = 255;
+                    _origIntensityG = 255;
+                    _origIntensityB = 255;
                     _origIntensityA = 255;
                 }
+                else{
+                  // Give it time to load colortable and make sure map is defined
+                  if(colorTable.map_) {  
+                    if(object._volume._parametric) {
+                      // normalize the negative values between 0-127 (0:len(keys_)/2-1)
+                      // positive values between 128 and 255 (len(keys_)/2 : 255)            
+                      numColors = colorTable.keys_.length;
+                      var _rangeMin = 0;
+                      var _rangeMax = 0;
+
+                      if (Math.round(_intensity) <= 0) {
+                      _rangeMax = _windowLow;
+                      _rangeMin = 0;
+                      norm_val = Math.round((numColors/2)-1 - ((Math.abs(_intensity)-_rangeMin)*(-(numColors/2)-1)/(_rangeMax - _rangeMin)));
+                      }
+                      else if(Math.round(_intensity) > 0){
+                        _rangeMax = _windowHigh;
+                        _rangeMin = 0;
+                        norm_val = Math.round((numColors/2) + ((_intensity-_rangeMin)*((numColors-1)-(numColors/2))/(_rangeMax - _rangeMin))); 
+                      }
+                    }
+                    else {
+                      norm_val = Math.round(255 * (_intensity - _windowLow)/(_windowHigh - _windowLow));
+                    }
+
+                    if(goog.isDefAndNotNull(colorTable.get(norm_val))){
+                      _origIntensityR = 255 * (colorTable.get(norm_val)[1]);
+                      _origIntensityG = 255 * (colorTable.get(norm_val)[2]);
+                      _origIntensityB = 255 * (colorTable.get(norm_val)[3]);
+                      _origIntensityA = 255 * (colorTable.get(norm_val)[4]);
+                    }
+                    if (goog.isDefAndNotNull(_volumeOpacity)){  // LL added for multiple volumes
+                        _origIntensityA = 255 * _volumeOpacity; 
+                    }
+                    else{
+                        _origIntensityA = 255;
+                    }
+                    
+                  }
+                }
+              }
+              else {
+                _origIntensityR = Math.round(255 * (_intensity - _windowLow)/(_windowHigh - _windowLow));
+                _origIntensityG = Math.round(255 * (_intensity - _windowLow)/(_windowHigh - _windowLow));
+                _origIntensityB = Math.round(255 * (_intensity - _windowLow)/(_windowHigh - _windowLow));
+                if (goog.isDefAndNotNull(_volumeOpacity)){  // LL added for multiple volumes
+                  _origIntensityA = 255 * _volumeOpacity; 
+                }
+                else{
+                  _origIntensityA = 255;
+                }
+              }
+              // apply thresholding
+              if (_intensity >= _lowerThreshold && _intensity <= _upperThreshold) {
+
+                  dst[i] = _origIntensityR;
+                  dst[i+1] = _origIntensityG;
+                  dst[i+2] = _origIntensityB;
+                  dst[i+3] = _origIntensityA
+                  /*
+                  dst[i] = this._colArrayCURRENT[_origIntensityR][0];
+                  dst[i+1] = this._colArrayCURRENT[_origIntensityG][1];
+                  dst[i+2] = this._colArrayCURRENT[_origIntensityB][2];
+                  dst[i+3] = _origIntensityA;
+                  */
+              }
+              else {
+                  dst[i] = dst[i+1] = dst[i+2] = dst[i+3] = 0;
+              }
             }
 
-            // apply thresholding
-            if (_intensity >= _lowerThreshold && _intensity <= _upperThreshold) {
+            else{
+                // the volume is an instance of a label map here
+                var _labelmap = object._volume; 
+                var labelColortable = _labelmap._colortable;
+                var label_colorTable = labelColortable._map;
+    
+                var _labelmapOpacity = _labelmap._opacity; 
+                var _labelVal = _intensity;
 
-                dst[i] = this._colArrayCURRENT[_origIntensityR][0];
-                dst[i+1] = this._colArrayCURRENT[_origIntensityG][1];
-                dst[i+2] = this._colArrayCURRENT[_origIntensityB][2];
+                var _labelMin = _labelmap._min;
+                var _labelMax = _labelmap._max;
+                var _labelWindowLow = _labelmap._windowLow;
+                var _labelWindowHigh = _labelmap._windowHigh;
+
+                var lookup_val = 0;
+
+                if (_labelmap._parametric) {
+
+                  var labelColors = label_colorTable.keys_.length;
+                  var _rangeMin = 0;
+                  var _rangeMax = 0; 
+                  
+                  if (Math.round(_labelVal) < 0) {
+                    _rangeMin = _labelWindowLow;
+                    _rangeMax = _labelmap._paramMin;
+                    lookup_val = Math.round(((_labelVal)-_rangeMin)*((labelColors/2)-1)/(_rangeMax - _rangeMin));
+                  }
+                  else if(Math.round(_labelVal) > 0){
+                    _rangeMax = _labelWindowHigh;
+                    _rangeMin = _labelmap._paramMax;
+                    lookup_val = Math.round((labelColors/2) + ((_labelVal-_rangeMin)*((labelColors-1)-(labelColors/2))/(_rangeMax - _rangeMin))); 
+                  }              
+                }
+                else {
+                    lookup_val = Math.round(255 * (_labelVal - _labelWindowLow)/(_labelWindowHigh - _labelWindowLow));
+                }
+
+                if(goog.isDefAndNotNull(label_colorTable.get(lookup_val))){
+                  _origIntensityR = 255 * (label_colorTable.get(lookup_val)[1]);
+                  _origIntensityG = 255 * (label_colorTable.get(lookup_val)[2]);
+                  _origIntensityB = 255 * (label_colorTable.get(lookup_val)[3]);
+                  _origIntensityA = 255 * (label_colorTable.get(lookup_val)[4]);
+                }
+                else {
+                  _origIntensityA = 0;
+                }
+                // check if all labels are shown or only one
+                var _labelmapShowOnlyColor = _labelmap._showOnlyColor;
+                if (_labelmapShowOnlyColor[3] == -255) {
+                    // all labels are shown                          
+                    _origIntensityA = _origIntensityA * _labelmapOpacity;
+                } else {
+                  // show only the label which matches in color
+                  if (X.array.compare(_labelmapShowOnlyColor, _labelData, 0, _index, 4)) {
+                    // this label matches
+                    _origIntensityA = _origIntensityA * _labelmapOpacity;
+                  }
+                  else {
+                    _origIntensityA = 0;
+                  }
+                }
+
+                dst[i] = _origIntensityR;
+                dst[i+1] = _origIntensityG;
+                dst[i+2] = _origIntensityB;
                 dst[i+3] = _origIntensityA;
+                
+                if((texture._rawData[i] + 
+                    texture._rawData[i + 1] + 
+                    texture._rawData[i + 2]) == 0)
+                    dst[i + 3] = 0;
+                //dst[i+3] = 0.5;
             }
-            else {
-                dst[i] = dst[i+1] = dst[i+2] = dst[i+3] = 0;
-            }
-		    }
-
-		    else{
-            // ------ Case for the labelmap is not worked out yet; LL. ----------
-            //var rIndex = Math.min(texture._rawData[i], this._colArrayHEAT.length - 1);
-            var rIndex = Math.min(texture._rawData[i], this._labelArrayCURRENT.length - 1);
-            var rIndex = Math.max(rIndex, 0);
-
-            //var gIndex = Math.min(texture._rawData[i+1], this._colArrayHEAT.length - 1);
-            var gIndex = Math.min(texture._rawData[i+1], this._labelArrayCURRENT.length - 1);
-            var gIndex = Math.max(gIndex, 0);
-
-            //var bIndex = Math.min(texture._rawData[i+2], this._colArrayHEAT.length - 1);
-            var bIndex = Math.min(texture._rawData[i+2], this._labelArrayCURRENT.length - 1);
-            var bIndex = Math.max(bIndex, 0);
-
-            dst[i] = this._labelArrayCURRENT[Math.round(rIndex)][0];
-            dst[i+1] = this._labelArrayCURRENT[Math.round(gIndex)][1];
-            dst[i+2] = this._labelArrayCURRENT[Math.round(bIndex)][2];
-
-
-            
-            if((texture._rawData[i] + 
-                texture._rawData[i + 1] + 
-                texture._rawData[i + 2]) == 0)
-                dst[i + 3] = 0;
-            //dst[i+3] = 0.5;
-		    }
-		}
+        }
 
         // use rawData rather than loading an imagefile
         this._context.texImage2D(this._context.TEXTURE_2D, 
@@ -1038,8 +1151,8 @@ X.renderer3D.prototype.update_ = function(object) {
             this._context.UNSIGNED_BYTE,
             dst);
 
-      } else {
-
+      } 
+      else {
         // use an imageFile for the texture
         this._context.texImage2D(this._context.TEXTURE_2D, 0,
             this._context.RGBA, this._context.RGBA,
@@ -1081,7 +1194,7 @@ X.renderer3D.prototype.update_ = function(object) {
       texturePositionBuffer = new X.buffer(glTexturePositionBuffer,
           textureCoordinateMap.length, 2);
 
-     this._texturePositionBuffers.set(id, texturePositionBuffer);
+      this._texturePositionBuffers.set(id, texturePositionBuffer);
 
       texture._dirty = false;
 

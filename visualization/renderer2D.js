@@ -1374,12 +1374,13 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                 var _labelWindowLow = _labelmap._windowLow;
                 var _labelWindowHigh = _labelmap._windowHigh;
 
+                var lookup_val = 0;
+
                 if (_volume._labelmap._parametric) {
 
                   var labelColors = label_colorTable.keys_.length;
                   var _rangeMin = 0;
                   var _rangeMax = 0; 
-                  var lookup_val = 0;
                   
                   if (Math.round(_labelVal) < 0) {
                     _rangeMin = _labelWindowLow;
@@ -1401,9 +1402,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                   _labelB = 255 * (label_colorTable.get(lookup_val)[3]);
                   _labelA = 255 * (label_colorTable.get(lookup_val)[4]);
                 }
-
-              }
-
+              
                 // check if all labels are shown or only one
                 if (_labelmapShowOnlyColor[3] == -255) {
 
@@ -1421,6 +1420,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
 
                 }
               }
+          }
 
           // LL added else statement - why wasn't this here??
           // ans: apparently doesn't do anything, but yet to break anything
