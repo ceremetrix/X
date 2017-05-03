@@ -1239,7 +1239,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                          _origIntensityB,
                          _origIntensityA];
             */
-            var norm_val = 0;
+            var norm_val = -Infinity;
             if(_intensity < _level - _window/2 ){
                   _origIntensity = 0;
                   _origIntensityR = 0;
@@ -1288,6 +1288,12 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                   _origIntensityG = 255 * (colorTable.get(norm_val)[2]);
                   _origIntensityB = 255 * (colorTable.get(norm_val)[3]);
                   _origIntensityA = 255 * (colorTable.get(norm_val)[4]);
+                }
+                else {
+                  _origIntensityR = 0;
+                  _origIntensityG = 0;
+                  _origIntensityB = 0;
+                  _origIntensityA = 0;
                 }
                 
               }
@@ -1374,7 +1380,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                 var _labelWindowLow = _labelmap._windowLow;
                 var _labelWindowHigh = _labelmap._windowHigh;
 
-                var lookup_val = 0;
+                var lookup_val = -Infinity;
 
                 if (_volume._labelmap._parametric) {
 
@@ -1401,6 +1407,12 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                   _labelG = 255 * (label_colorTable.get(lookup_val)[2]);
                   _labelB = 255 * (label_colorTable.get(lookup_val)[3]);
                   _labelA = 255 * (label_colorTable.get(lookup_val)[4]);
+                }
+                else {
+                  _labelR = 0;
+                  _labelG = 0;
+                  _labelB = 0;
+                  _labelA = 0;
                 }
               
                 // check if all labels are shown or only one

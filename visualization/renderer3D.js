@@ -978,7 +978,7 @@ X.renderer3D.prototype.update_ = function(object) {
 
               if (object._volume._colortable) {
                 var colorTable = object._volume._colortable._map;
-                var norm_val = 0;          
+                var norm_val = -Infinity;          
 
                 if(_intensity < _level - _window/2 ){
                     _origIntensity = 0;
@@ -1024,6 +1024,12 @@ X.renderer3D.prototype.update_ = function(object) {
                       _origIntensityG = 255 * (colorTable.get(norm_val)[2]);
                       _origIntensityB = 255 * (colorTable.get(norm_val)[3]);
                       _origIntensityA = 255 * (colorTable.get(norm_val)[4]);
+                    }
+                    else {
+                      _origIntensityR = 0;
+                      _origIntensityG = 0;
+                      _origIntensityB = 0;
+                      _origIntensityA = 0;
                     }
                     if (goog.isDefAndNotNull(_volumeOpacity)){  // LL added for multiple volumes
                         _origIntensityA = 255 * _volumeOpacity; 
@@ -1079,7 +1085,7 @@ X.renderer3D.prototype.update_ = function(object) {
                 var _labelWindowLow = _labelmap._windowLow;
                 var _labelWindowHigh = _labelmap._windowHigh;
 
-                var lookup_val = 0;
+                var lookup_val = -Infinity;
 
                 if (_labelmap._parametric) {
 
@@ -1109,6 +1115,9 @@ X.renderer3D.prototype.update_ = function(object) {
                   _origIntensityA = 255 * (label_colorTable.get(lookup_val)[4]);
                 }
                 else {
+                  _origIntensityR = 0;
+                  _origIntensityG = 0;
+                  _origIntensityB = 0;
                   _origIntensityA = 0;
                 }
                 // check if all labels are shown or only one
