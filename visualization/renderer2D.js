@@ -1222,24 +1222,8 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
             // The intensity (texture) is already normalized from parser.js if colortable present,
             var colorTable = _colortable._map;
             var _intensity = _sliceData[_index];
-            /*
-            var _intensityR = _sliceData[_index];
-            var _intensityG = _sliceData[_index + 1];
-            var _intensityB = _sliceData[_index + 2];
-            var _intensityA = _sliceData[_index + 3];
-            
-            _origIntensity  = _intensity;
-            _origIntensityR = _intensityR;
-            _origIntensityG = _intensityG;
-            _origIntensityB = _intensityB;
-            _origIntensityA = _intensityA;
-
-            _color = [_origIntensityR,
-                         _origIntensityG,
-                         _origIntensityB,
-                         _origIntensityA];
-            */
             var norm_val = -Infinity;
+
             if(_intensity < _level - _window/2 ){
                   _origIntensity = 0;
                   _origIntensityR = 0;
@@ -1258,11 +1242,6 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
               // Give it time to load colortable and make sure map is defined
               if(colorTable.map_) {  
                 if(_volume._parametric) {
-                  if(_intensity < -1) {
-                    pause = '';
-                  }
-                  // the raw data was mult. by 100 to preserve decimal places in the texture array, so div by 100
-                  //_intensity = _intensity/100;
                   // normalize the negative values between 0-127 (0:len(keys_)/2-1)
                   // positive values between 128 and 255 (len(keys_)/2 : 255)            
                   numColors = colorTable.keys_.length;
@@ -1294,20 +1273,11 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                   _origIntensityG = 0;
                   _origIntensityB = 0;
                   _origIntensityA = 0;
-                }
-                
+                }                
               }
             }
-
           } 
           else{
-              /*
-              var _intensity = (_sliceData[_index] / 255) * _fac1 + _volume._min;
-              var _intensityR = (_sliceData[_index] / 255) * _fac1 + _volume._min;
-              var _intensityG = (_sliceData[_index + 1] / 255) * _fac1 + _volume._min;
-              var _intensityB = (_sliceData[_index + 2] / 255) * _fac1 + _volume._min;
-              var _intensityA = (_sliceData[_index + 3] / 255) * _fac1 + _volume._min;
-              */
               // No longer normalized in parser, so jus take intensity value:
               var _intensity = _sliceData[_index];
               var _intensityR = _sliceData[_index];
@@ -1320,7 +1290,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                   _origIntensityR = 0;
                   _origIntensityG = 0;
                   _origIntensityB = 0;
-                  _origIntensityA = 0; // should the alpha be 0 or 255?? -LL
+                  _origIntensityA = 0; 
               }
               else if(_intensity > _level + _window/2 ){
                   _origIntensity = 255;
@@ -1334,7 +1304,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                   _origIntensityR = Math.round(255 * (_intensityR - (_level - _window / 2))/_window);
                   _origIntensityG = Math.round(255 * (_intensityG - (_level - _window / 2))/_window);
                   _origIntensityB = Math.round(255 * (_intensityB - (_level - _window / 2))/_window);
-                  _origIntensityA = 255 // alpha level = 255
+                  _origIntensityA = 255 
               }
             }
         
@@ -1342,27 +1312,11 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
           // apply thresholding
           if (_intensity >= _lowerThreshold && _intensity <= _upperThreshold) {
 
-              // current intensity is inside the threshold range so use the real
-              // intensity
+              // current intensity is inside the threshold range so use the real intensity
               _color = [_origIntensityR,
                          _origIntensityG,
                          _origIntensityB,
                          _origIntensityA];
-
-          /*
-              if (_colortable) {
-                _color = [_origIntensityR,
-                         _origIntensityG,
-                         _origIntensityB,
-                         _origIntensityA]
-              } else {
-                // LL: instead of above portion, use colArray lookup:
-                _color = [this._colArrayCURRENT[_origIntensityR][0],
-                        this._colArrayCURRENT[_origIntensityG][1],
-                        this._colArrayCURRENT[_origIntensityB][2],
-                        255];
-              }
-          */
 
               if (_currentLabelMap) {
 
@@ -1383,7 +1337,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                 var lookup_val = -Infinity;
 
                 if (_volume._labelmap._parametric) {
-
+                  // normalize according to same logic as above 
                   var labelColors = label_colorTable.keys_.length;
                   var _rangeMin = 0;
                   var _rangeMax = 0; 
@@ -1417,13 +1371,10 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
               
                 // check if all labels are shown or only one
                 if (_labelmapShowOnlyColor[3] == -255) {
-
-                    // all labels are shown         
-                  
+                    // all labels are shown                           
                     _label = [_labelR, _labelG, _labelB, _labelA];
 
                 } else {
-
                   // show only the label which matches in color
                   if (X.array.compare(_labelmapShowOnlyColor, _labelData, 0, _index, 4)) {
                     // this label matches
@@ -1433,12 +1384,6 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                 }
               }
           }
-
-          // LL added else statement - why wasn't this here??
-          // ans: apparently doesn't do anything, but yet to break anything
-          //else{
-            //  _color = [0,0,0,0];
-          //}
 
           if(this._orientation == "X"){
               // invert nothing

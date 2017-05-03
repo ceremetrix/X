@@ -924,72 +924,12 @@ X.parser.reslice2 = function(_sliceOrigin, _sliceXYSpacing, _sliceNormal, _color
         var pixelValue_g = 0;
         var pixelValue_b = 0;
         var pixelValue_a = 0;
-/*
-        if (colorTable) {
 
-          // color table!
-          var norm_val = pixval;
-          if (!isNaN(pixval)) {
-           
-            if (object instanceof X.labelmap) {
-              // check to see if it is a parametric overlay -> need specific colortable
-              if(object._parametric) {
-                // normalize the negative values between 0-127 (0:len(keys_)/2-1)
-                // positive values between 128 and 255 (len(keys_)/2 : 255)
-                var numColors = colorTable.keys_.length; 
-                
-                if (Math.round(pixval) <= object._paramMin) {
-                  var _rangeMax = Math.abs(object._min);
-                  var _rangeMin = Math.abs(object._paramMin);
-                  norm_val = Math.round((numColors/2)-1 + ((Math.abs(pixval)-_rangeMin)*(-(numColors/2)-1)/(_rangeMax - _rangeMin)));
-                }
-                else if(Math.round(pixval) >= object._paramMax){
-                  var _rangeMax = object._max;
-                  var _rangeMin = object._paramMax;
-                  norm_val = Math.round((numColors/2) + ((Math.abs(pixval)-_rangeMin)*(((numColors)-1)-(numColors/2))/(_rangeMax - _rangeMin))); 
-                }
-              }
-            }
-            else {
-              if(object._parametric) {
-                // normalize the negative values between 0-127 (0:len(keys_)/2-1)
-                // positive values between 128 and 255 (len(keys_)/2 : 255)
-                numColors = colorTable.keys_.length; 
-                
-                if (Math.round(pixval) <= 0) {
-                  _rangeMax = Math.abs(object._min);
-                  _rangeMin = 0;
-                  norm_val = Math.round((numColors/2)-1 + ((Math.abs(pixval)-_rangeMin)*(-(numColors/2)-1)/(_rangeMax - _rangeMin)));
-                }
-                else if(Math.round(pixval) > 0){
-                  _rangeMax = object._max;
-                  _rangeMin = 0;
-                  norm_val = Math.round((numColors/2) + ((Math.abs(pixval)-_rangeMin)*(((numColors)-1)-(numColors/2))/(_rangeMax - _rangeMin))); 
-                }
-              }
-              else {
-                norm_val = Math.round(255 * (pixval - object._min)/(object._max - object._min))
-              }
-            }
-          }
-          var lookupValue = colorTable.get(norm_val);
-          // check for out of range and use a transparent label in this case
-          if (!lookupValue) { 
-            lookupValue = [ 0, 0, 0, 0, 0];
-          }
+        pixelValue_r = pixelValue_g = pixelValue_b = pixval; // <-- NOT Normalized!!
+        pixelValue_a = 255;
 
-          pixelValue_r = 255 * lookupValue[1];
-          pixelValue_g = 255 * lookupValue[2];
-          pixelValue_b = 255 * lookupValue[3];
-          pixelValue_a = 255 * lookupValue[4];
-
-        }
-        else {*/
-          // normalization should not happen here, only in the shaders/canvas??
-          //pixelValue_r = pixelValue_g = pixelValue_b = 255 * ((pixval - object._min )/ (object._max - object._min));
-          pixelValue_r = pixelValue_g = pixelValue_b = pixval; // <-- NOT Normalized!!
-          pixelValue_a = 255;
-        //}
+        // Normalization, application of window/level, threshold, and color are now
+        // done within the rendering loops! -LL
 
         textureForCurrentSlice[textureStartIndex] = pixelValue_r;
         textureForCurrentSlice[++textureStartIndex] = pixelValue_g;

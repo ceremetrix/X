@@ -960,11 +960,7 @@ X.renderer3D.prototype.update_ = function(object) {
             var _intensityR = texture._rawData[i];
             var _intensityG = texture._rawData[i + 1];
             var _intensityB = texture._rawData[i + 2];
-            /*
-            var _intensityR = (texture._rawData[i] / 255) * _fac1 + object._volume._min;
-            var _intensityG = (texture._rawData[i + 1] / 255) * _fac1 + object._volume._min;
-            var _intensityB = (texture._rawData[i + 2] / 255) * _fac1 + object._volume._min;
-            */
+
             var _origIntensity = 0;
             var _origIntensityR = 0;
             var _origIntensityG = 0;
@@ -1059,12 +1055,7 @@ X.renderer3D.prototype.update_ = function(object) {
                   dst[i+1] = _origIntensityG;
                   dst[i+2] = _origIntensityB;
                   dst[i+3] = _origIntensityA
-                  /*
-                  dst[i] = this._colArrayCURRENT[_origIntensityR][0];
-                  dst[i+1] = this._colArrayCURRENT[_origIntensityG][1];
-                  dst[i+2] = this._colArrayCURRENT[_origIntensityB][2];
-                  dst[i+3] = _origIntensityA;
-                  */
+    
               }
               else {
                   dst[i] = dst[i+1] = dst[i+2] = dst[i+3] = 0;

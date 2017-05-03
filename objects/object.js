@@ -213,13 +213,7 @@ X.object.prototype.__defineSetter__('colortable', function(colortable) {
     }
     else {
       this._colortable = null;
-    }
-    //this._colortable._file = colortable.file;
-    //loader = new X.loader();
-    //loader.load(colortable, this);
-    
-    
-    //this.modified();
+    }  
 
 });
 
