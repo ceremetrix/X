@@ -205,11 +205,15 @@ X.object.prototype.__defineGetter__('colortable', function() {
  */
 X.object.prototype.__defineSetter__('colortable', function(colortable) {
 
-    var loader = new X.loader();
-    loader.load(colortable, this);
-    this._colortable = colortable;
-    this._file.dirty =  true;    
-
+    if (goog.isDefAndNotNull(colortable)){
+      var loader = new X.loader();
+      loader.load(colortable, this);
+      this._colortable = colortable;
+      this._file.dirty =  true;    
+    }
+    else {
+      this._colortable = null;
+    }
     //this._colortable._file = colortable.file;
     //loader = new X.loader();
     //loader.load(colortable, this);
