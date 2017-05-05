@@ -72,9 +72,10 @@
             //volume.labelmap.opacity = 0.6;
             //volume.labelmap.opacity = 0.9;
   
-            //var volume2 = new X.volume();
-            //volume2.file = "/../Images/Patient01.norm.nii"
-            //volume2.opacity = 0.3; 
+            ids = new X.labelmap();
+            ids.file = "/../Images/Patient01_clusterIDs.nii";
+            loader.load(ids,ids);
+
 /*
             var mesh = new X.mesh();
             mesh.file = "/../Images/clusters.vtk";

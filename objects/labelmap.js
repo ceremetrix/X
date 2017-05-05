@@ -75,6 +75,29 @@ X.labelmap = function(volume) {
    */
   this._showOnlyColor = new Float32Array([-255, -255, -255, -255]);
   
+  /**
+   * The label ID for each pixel.  (The cluster number that the voxel belongs to)
+   *
+   * @type {?Array}
+   * @protected
+   */
+  this._labelIDs = null;
+
+  /**
+   * The max label ID. AKA number of clusters
+   *
+   * @type {?number}
+   * @protected
+   */
+  this._labelIDsMax = -Infinity;
+
+  /**
+   * The only label to show.
+   *
+   * @type {!Array}
+   * @protected
+   */
+  this._showOnlyLabel = [];
 
 };
 // inherit from X.volume
@@ -94,12 +117,52 @@ X.labelmap.prototype.modified = function() {
   this.dispatchEvent(modifiedEvent);
 
   // call the X.volumes' modified method
-  this._volume.modified();
-
+  if (this._volume){
+    this._volume.modified();
+  }
 };
 
 // ---------------------------------
 // LL added
+
+/**
+ * Set the label IDs attribute.  This maps voxels to their associated label id (ie cluster ID)
+ *
+ * @param {?Array} ids The array that contains labels (cluster IDs).
+ * @throws {Error} If anything goes wrong.
+ * @public
+ */
+X.labelmap.prototype.__defineSetter__('labelIDs', function(ids) {
+
+  if (goog.isArrayLike(ids)) {
+    if (ids.length == this._data.length) {
+      this._labelIDs = ids;
+      
+      // also set the max id value:
+      var _max = -Infinity;
+      var _datasize = ids.length;
+      var i = 0;
+
+      for (i=0; i < _datasize; i++){
+        if (!isNaN(ids[i])) {
+          var _value = ids[i];
+          _max = Math.max(_max, _value);
+        }
+      }
+
+      this._labelIDsMax = _max;
+
+    }
+    else {
+      throw new Error('ID Array not of the same size as labelmap.')
+    }
+  }
+  else {
+    throw new Error('Not a valid assignemnt. Must be an array and of the same size.')
+  }
+
+});
+
 /**
  * Show only the label with the given value or color (RGBA 0..1). If null is passed,
  * show all labels.
@@ -108,7 +171,7 @@ X.labelmap.prototype.modified = function() {
  * @throws {Error} If anything goes wrong.
  * @public
  */
-X.labelmap.prototype.__defineSetter__('showOnly', function(label) {
+X.labelmap.prototype.__defineSetter__('showOnlyColor', function(label) {
 
   var _color = [-1, -1, -1, -1];
 
@@ -140,6 +203,28 @@ X.labelmap.prototype.__defineSetter__('showOnly', function(label) {
   this._showOnlyColor = new Float32Array([Math.floor(_color[0]*255),Math.floor(_color[1]*255),Math.floor(_color[2]*255),Math.floor(_color[3]*255)]);
 
 });
+
+/**
+ * Show only the voxels that match the given label ID (ie Cluster ID). If null is passed,
+ * show all labels.
+ *
+ * @param {?number} label The label value or clusterID to show.
+ * @throws {Error} If anything goes wrong.
+ * @public
+ */
+X.labelmap.prototype.__defineSetter__('showOnlyLabel', function(label) {
+
+  if (goog.isDefAndNotNull(label)) {
+    if (label > this._labelIDsMax) {
+      throw new Error ('Cluster ID out of range.');
+    }
+    else {
+      this._showOnlyLabel.push(label);
+    }
+  }
+
+});
+
 
 // --------------------------------------
 

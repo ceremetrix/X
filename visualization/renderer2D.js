@@ -196,6 +196,14 @@ X.renderer2D = function() {
   this._labelmapShowOnlyColor = new Float32Array([-255, -255, -255, -255]);
 
   /**
+   * The buffer of the showOnlyLabel labelmap attribute. (LL added)
+   *
+   * @type {!Array}
+   * @protected
+   */
+  this._labelmapShowOnlyLabel = [];
+
+  /**
    * The buffer for current volume colortable (LL added)
    * 
    * @type {?string}
@@ -1098,12 +1106,14 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
 
     var _labelmap = _volume._labelmap;
     var _labelmapShowOnlyColor = null;
+    var _labelmapShowOnlyLabel = [];
     var _colortable = _volume._colortable;
     
     if (_labelmap) {
 
         // since there is a labelmap, get the showOnlyColor property
         _labelmapShowOnlyColor = _volume._labelmap._showOnlyColor;
+        _labelmapShowOnlyLabel = _volume._labelmap._showOnlyLabel
 
     }
 
@@ -1173,7 +1183,8 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
         this._windowLow != _windowLow || 
         this._windowHigh != _windowHigh || 
         (_labelmapShowOnlyColor && !X.array
-        .compare(_labelmapShowOnlyColor, this._labelmapShowOnlyColor, 0, 0, 4)));
+        .compare(_labelmapShowOnlyColor, this._labelmapShowOnlyColor, 0, 0, 4)) ||
+        this._labelmapShowOnlyLabel.length != _labelmapShowOnlyLabel.length);
 
     if (_redraw_required) {
         this._colArrayChanged = true;
@@ -1369,18 +1380,54 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                   _labelA = 0;
                 }
               
-                // check if all labels are shown or only one
-                if (_labelmapShowOnlyColor[3] == -255) {
-                    // all labels are shown                           
-                    _label = [_labelR, _labelG, _labelB, _labelA];
+                // check if all labels are shown, or just one/some 
+                if (_labelmapShowOnlyLabel.length > 0) {
+                  if (goog.isDefAndNotNull(_labelmap._labelIDs)) {
+                    var _xyIndex = _index/4;
+                    var _pointer = 0;
+                    var _x = 0;
+                    var _y = 0;
+                    var _z = 0;
 
-                } else {
-                  // show only the label which matches in color
-                  if (X.array.compare(_labelmapShowOnlyColor, _labelData, 0, _index, 4)) {
-                    // this label matches
-                    _label = [_labelR, _labelG, _labelB, _labelA];
+                    if (this._orientation == "X") {
+                      x = _xyIndex % _sliceWidth;
+                      y = (_xyIndex - _x) / _sliceWidth;
+                      z = _currentSlice;
+                      var _pointer = _xyIndex + _currentSlice*((_width2) * (_height2+1));
+                    } else if (this._orientation == "Y") {
+                      x = _xyIndex % _sliceWidth;
+                      y = (_xyIndex - _x) / _sliceWidth;
+                      z = _currentSlice;
+                      var _pointer = _xyIndex + _currentSlice*((_width2) * (_height2+1));
+                    } else if (this._orientattion == "Z") {
+                      x = _xyIndex % _sliceWidth;
+                      y = (_xyIndex - _x) / _sliceWidth;
+                      z = _currentSlice;
+                      var _pointer = _xyIndex + _currentSlice*((_width2) * (_height2+1));
+                    }
+
+                    
+                    var _refID = _labelmap._labelIDs[_pointer];
+
+                    if (_labelmapShowOnlyLabel.includes(_refID)) {
+                      // the label ID for this voxel is included in show only
+                      _label = [_labelR, _labelG, _labelB, _labelA];
+                    } 
+                    
                   }
+                } else {
+                  // check if all colors are shown or only one
+                  if (_labelmapShowOnlyColor[3] == -255) {
+                      // all labels are shown                           
+                      _label = [_labelR, _labelG, _labelB, _labelA];
 
+                  } else {
+                    // show only the label which matches in color
+                    if (X.array.compare(_labelmapShowOnlyColor, _labelData, 0, _index, 4)) {
+                      // this label matches
+                      _label = [_labelR, _labelG, _labelB, _labelA];
+                    }
+                  }
                 }
               }
           }
@@ -1446,6 +1493,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
             // only update the setting if we have a labelmap
             this._labelmapShowOnlyColor = _labelmapShowOnlyColor;
             this._labelmapColortable = _labelmapColortable;
+            this._labelmapShowOnlyLabel = _labelmapShowOnlyLabel;
 
           }
 
