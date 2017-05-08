@@ -1121,11 +1121,14 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
     var _slice = this._slices[parseInt(_currentSlice, 10)];
     var _sliceData = _slice._texture._rawData;
     var _currentLabelMap = _slice._labelmap;
+    var _currentLabelIDs = _slice._labelmapIDs;
     var _labelData = null;
+    var _labelIds = null;
     if (_currentLabelMap) {
-
-        _labelData = _currentLabelMap._rawData;
-
+      _labelData = _currentLabelMap._rawData;
+    }
+    if (_currentLabelIDs) {
+      _labelIDs = _currentLabelIDs._rawData;
     }
 
     var _sliceWidth = this._sliceWidth;
@@ -1383,31 +1386,78 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                 // check if all labels are shown, or just one/some 
                 if (_labelmapShowOnlyLabel.length > 0) {
                   if (goog.isDefAndNotNull(_labelmap._labelIDs)) {
+                    var _refID = _labelIDs[_index];
+/*                    
+                    
                     var _xyIndex = _index/4;
-                    var _pointer = 0;
-                    var _x = 0;
-                    var _y = 0;
-                    var _z = 0;
+                    var x = _xyIndex % _sliceWidth;
+                    var y = (_xyIndex - x) / _sliceWidth; 
+                    var _indexXY = goog.vec.Vec4.createFloat32FromValues( x, y, _currentSlice, 1);
+                    var _indexIJK = goog.vec.Vec4.createFloat32();
 
-                    if (this._orientation == "X") {
-                      x = _xyIndex % _sliceWidth;
-                      y = (_xyIndex - _x) / _sliceWidth;
-                      z = _currentSlice;
-                      var _pointer = _xyIndex + _currentSlice*((_width2) * (_height2+1));
-                    } else if (this._orientation == "Y") {
-                      x = _xyIndex % _sliceWidth;
-                      y = (_xyIndex - _x) / _sliceWidth;
-                      z = _currentSlice;
-                      var _pointer = _xyIndex + _currentSlice*((_width2) * (_height2+1));
-                    } else if (this._orientattion == "Z") {
-                      x = _xyIndex % _sliceWidth;
-                      y = (_xyIndex - _x) / _sliceWidth;
-                      z = _currentSlice;
-                      var _pointer = _xyIndex + _currentSlice*((_width2) * (_height2+1));
+                    // Go from 2d space to IJK space
+                    _XYtoIJK = _slice._XYToIJK;
+                    goog.vec.Mat4.multVec4(_XYtoIJK, _indexXY, _indexIJK);
+                    var _i = Math.floor(_indexIJK[0]);
+                    var _j = Math.floor(_indexIJK[1]);
+                    var _k = Math.floor(_indexIJK[2]);
+                    var _refID = 0;                                        
+
+                    if (this._orientation = "X") {
+                      _k = _k + _volume._dimensions[2];
+                    }
+                    if (this._orientation = "Y") {
+                      _k = _k + _volume._dimensions[2];
                     }
 
-                    
+                    if( (0 <= _i) && (_i < _volume._dimensions[0] ) &&
+                      (0 <= _j) && (_j < _volume._dimensions[1] ) &&
+                      (0 <= _k) && (_k < _volume._dimensions[2] )) {
+
+
+                      if (!goog.isDefAndNotNull(_labelmap._labelIDs[_k])) {
+                        pause = '';
+                      }
+                      if (_j < 0) {
+                        pause = '';
+                      }
+                      _refID = _labelmap._labelIDs[_k][_j][_i];
+                    }
+
+                    /*
+                    var _pointer = 0;
+                    var _i = 0;
+                    var _j = 0;
+                    var _k = 0;
+
+                    var I = _volume._dimensions[0];
+                    var J = _volume._dimensions[1];
+                    var K = _volume._dimensions[2];
+
+                    var x = _xyIndex % _sliceWidth;
+                    var y = (_xyIndex - _x) / _sliceWidth;
+                    var z = _currentSlice;
+
+                    if (this._orientation == "X") {
+                      _i = z;
+                      _j = x;
+                      _k = y;                      
+                      
+                    } else if (this._orientation == "Y") {
+                      _i = x;
+                      _j = z;
+                      _k = y;
+
+                    } else if (this._orientattion == "Z") {
+                      _i = x;
+                      _j = y;
+                      _k = z;
+                    }
+
+                    var _pointer = (_j * I) + _i + (_k * I * J); 
+                                       
                     var _refID = _labelmap._labelIDs[_pointer];
+                    */
 
                     if (_labelmapShowOnlyLabel.includes(_refID)) {
                       // the label ID for this voxel is included in show only

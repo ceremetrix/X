@@ -574,8 +574,10 @@ X.volume.prototype.slicing_ = function() {
 
     }
 
+
     // RESLICE VOLUME IF NECESSARY!
-    if(!goog.isDefAndNotNull(this._children[xyz]._children[parseInt(currentIndex, 10)])){
+    if(!goog.isDefAndNotNull(this._children[xyz]._children[parseInt(currentIndex, 10)]) ||
+        this._labelmap._children[xyz]._children[parseInt(currentIndex, 10)]._dirty == true){
 
       // GO reslice!
       var _sliceOrigin = goog.vec.Vec3.createFloat32();
@@ -588,6 +590,9 @@ X.volume.prototype.slicing_ = function() {
       //attach labelmap
       if(this.hasLabelMap){
         var _sliceLabel = X.parser.reslice2(_sliceOrigin, this._childrenInfo[xyz]._sliceXYSpacing, this._childrenInfo[xyz]._sliceNormal, this._childrenInfo[xyz]._color, this._BBox, this._labelmap._IJKVolume, this._labelmap, this._labelmap.hasLabelMap, this._labelmap._colortable._map);
+        if (goog.isDefAndNotNull(this._labelmap._labelIDs)) {
+          var _sliceLabelIDs = X.parser.reslice2(_sliceOrigin, this._childrenInfo[xyz]._sliceXYSpacing, this._childrenInfo[xyz]._sliceNormal, this._childrenInfo[xyz]._color, this._BBox, this._labelmap._labelIDs, this._labelmap, this._labelmap.hasLabelMap, this._labelmap._colortable._map);
+        }
         this._labelmap._children[xyz]._children[parseInt(currentIndex, 10)] = _sliceLabel;
         // add it to create the texture
         this._labelmap._children[xyz].modified(true);
@@ -605,6 +610,10 @@ X.volume.prototype.slicing_ = function() {
       if(this.hasLabelMap){
         _slice._labelmap = _slice._texture;
         _slice._labelmap = this._labelmap._children[xyz]._children[parseInt(currentIndex, 10)]._texture;
+        if (goog.isDefAndNotNull(this._labelmap._labelIDs)){
+          _slice._labelmapIDs = _slice._texture;
+          _slice._labelmapIDs = _sliceLabelIDs._texture;
+        }
       }
 
       _child._children[parseInt(currentIndex, 10)] = _slice;
@@ -613,6 +622,9 @@ X.volume.prototype.slicing_ = function() {
       this._children[xyz].modified(true);
     }
     // DONE RESLICING!
+
+    // reset dirty flag used to force reslicing
+    this._labelmap._children[xyz]._children[parseInt(currentIndex, 10)]._dirty == false;
 
     // hide the old slice
     var _oldSlice = _child._children[parseInt(oldIndex, 10)];
@@ -627,6 +639,7 @@ X.volume.prototype.slicing_ = function() {
     var _currentSlice = _child._children[parseInt(currentIndex, 10)];
     _currentSlice['visible'] = true;
     _currentSlice._opacity = 1.0;
+    
 
     if(this._volumeRendering){
 

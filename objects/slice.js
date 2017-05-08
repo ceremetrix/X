@@ -126,6 +126,14 @@ X.slice = function(slice) {
   this._labelmap = null;
 
   /**
+   * The label ID's of this slice which is a second (third) texture.
+   *
+   * @type {?X.texture}
+   * @protected
+   */
+  this._labelmapIDs = null;
+
+  /**
    * Flag to show borders or not.
    *
    * @type {boolean}
