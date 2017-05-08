@@ -77,6 +77,7 @@ X.labelmap = function(volume) {
   
   /**
    * The label ID for each pixel.  (The cluster number that the voxel belongs to)
+   * In IJK format
    *
    * @type {?Array}
    * @protected
@@ -136,22 +137,63 @@ X.labelmap.prototype.__defineSetter__('labelIDs', function(ids) {
 
   if (goog.isArrayLike(ids)) {
     if (ids.length == this._data.length) {
-      this._labelIDs = ids;
-      
-      // also set the max id value:
+      // data is same size, put in ijk format
+      var _arrayDims = this._volume._dimensions;
+      var _ijk = new Array(_arrayDims[2]);
+      var _num_per_slice = _arrayDims[1] * _arrayDims[0];
+      var _pix_value = 0;
+      var _i = 0;
+      var _j = 0;
+      var _k = 0;
+      var _pointer = 0;
       var _max = -Infinity;
-      var _datasize = ids.length;
-      var i = 0;
 
-      for (i=0; i < _datasize; i++){
-        if (!isNaN(ids[i])) {
-          var _value = ids[i];
-          _max = Math.max(_max, _value);
+      for (_k = 0; _k < _arrayDims[2]; _k++) {
+        // get current slice
+        var _current_k = ids.subarray(_k * (_num_per_slice), (_k + 1)
+            * _num_per_slice);
+        // initiate data pointer
+        _data_pointer = 0;
+
+        // allocate images        
+        _ijk[_k] = new Array(_arrayDims[1]);
+
+        for (_j = 0; _j < _arrayDims[1]; _j++) {
+          // allocate images
+          _ijk[_k][_j] = new ids.constructor(_arrayDims[0]);
+
+          for (_i = 0; _i < _arrayDims[0]; _i++) {
+            if (!isNaN(_current_k[_data_pointer])) {
+              _pix_value = _current_k[_data_pointer];
+            }
+            _ijk[_k][_j][_i] = _pix_value;
+            _max = Math.max(_max, _pix_value);
+            _data_pointer++;
+          }
         }
       }
-
+      
+      this._labelIDs = _ijk;
       this._labelIDsMax = _max;
 
+      // set dirty flag for the current slice to force reslicing
+      var xyz = 0;
+      for (xyz = 0; xyz < 3; xyz++) {
+        var currentIndex = 0;
+        if (xyz == 0) {
+          currentIndex = this._volume._indexX;          
+
+        } else if (xyz == 1) {
+          currentIndex = this._volume._indexY;
+          
+        } else if (xyz == 2) {
+          currentIndex = this._volume._indexZ;
+          
+        }
+        this._children[xyz]._children[parseInt(currentIndex, 10)]._dirty = true;
+      }
+      this.modified();
+      
     }
     else {
       throw new Error('ID Array not of the same size as labelmap.')
