@@ -1065,6 +1065,10 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
     }
     
     //if slice do not exist yet, we have to set slice dimensions
+    if (!goog.isDefAndNotNull(this._slices[parseInt(_currentSlice, 10)])) {
+      this.update_(_volume);
+    }
+
     var _width2 = this._slices[parseInt(_currentSlice, 10)]._iWidth;
     var _height2 = this._slices[parseInt(_currentSlice, 10)]._iHeight;
     // spacing

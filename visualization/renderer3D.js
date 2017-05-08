@@ -992,7 +992,7 @@ X.renderer3D.prototype.update_ = function(object) {
                 }
                 else{
                   // Give it time to load colortable and make sure map is defined
-                  if(colorTable.map_) {  
+                  if(colorTable.keys_.length > 0) {  
                     if(object._volume._parametric) {
                       // normalize the negative values between 0-127 (0:len(keys_)/2-1)
                       // positive values between 128 and 255 (len(keys_)/2 : 255)            
@@ -1034,6 +1034,8 @@ X.renderer3D.prototype.update_ = function(object) {
                         _origIntensityA = 255;
                     }
                     
+                  } else {
+                    this.update_(object); // loop through until colortable is loaded
                   }
                 }
               }
@@ -1111,19 +1113,30 @@ X.renderer3D.prototype.update_ = function(object) {
                   _origIntensityB = 0;
                   _origIntensityA = 0;
                 }
-                // check if all labels are shown or only one
-                var _labelmapShowOnlyColor = _labelmap._showOnlyColor;
-                if (_labelmapShowOnlyColor[3] == -255) {
-                    // all labels are shown                          
+                // check if all labels are shown or just one/some
+                if (goog.isDefAndNotNull(_labelmap._labelIDs) && _labelmap._showOnlyLabel.length > 0) {
+                  var _labelID_data = object._labelmapIDs._rawData;  // texture containing 'cluster ID' for each voxel
+                  var _idValue = _labelID_data[i];   // cluster ID value
+                  if (_labelmap._showOnlyLabel.includes(_idValue)) {
                     _origIntensityA = _origIntensityA * _labelmapOpacity;
-                } else {
-                  // show only the label which matches in color
-                  if (X.array.compare(_labelmapShowOnlyColor, _labelData, 0, _index, 4)) {
-                    // this label matches
-                    _origIntensityA = _origIntensityA * _labelmapOpacity;
-                  }
-                  else {
+                  } else {
                     _origIntensityA = 0;
+                  }
+
+                } else {
+                  var _labelmapShowOnlyColor = _labelmap._showOnlyColor;
+                  if (_labelmapShowOnlyColor[3] == -255) {
+                      // all labels are shown                          
+                      _origIntensityA = _origIntensityA * _labelmapOpacity;
+                  } else {
+                      // show only the label which matches in color
+                      if (X.array.compare(_labelmapShowOnlyColor, _labelData, 0, _index, 4)) {
+                        // this label matches
+                        _origIntensityA = _origIntensityA * _labelmapOpacity;
+                      }
+                      else {
+                        _origIntensityA = 0;
+                      }
                   }
                 }
 

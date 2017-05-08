@@ -576,9 +576,10 @@ X.volume.prototype.slicing_ = function() {
 
 
     // RESLICE VOLUME IF NECESSARY!
-    if(!goog.isDefAndNotNull(this._children[xyz]._children[parseInt(currentIndex, 10)]) ||
+    /*if(!goog.isDefAndNotNull(this._children[xyz]._children[parseInt(currentIndex, 10)]) ||
         this._labelmap._children[xyz]._children[parseInt(currentIndex, 10)]._dirty == true){
-
+*/
+    if(!goog.isDefAndNotNull(this._children[xyz]._children[parseInt(currentIndex, 10)])){
       // GO reslice!
       var _sliceOrigin = goog.vec.Vec3.createFloat32();
 
@@ -592,6 +593,7 @@ X.volume.prototype.slicing_ = function() {
         var _sliceLabel = X.parser.reslice2(_sliceOrigin, this._childrenInfo[xyz]._sliceXYSpacing, this._childrenInfo[xyz]._sliceNormal, this._childrenInfo[xyz]._color, this._BBox, this._labelmap._IJKVolume, this._labelmap, this._labelmap.hasLabelMap, this._labelmap._colortable._map);
         if (goog.isDefAndNotNull(this._labelmap._labelIDs)) {
           var _sliceLabelIDs = X.parser.reslice2(_sliceOrigin, this._childrenInfo[xyz]._sliceXYSpacing, this._childrenInfo[xyz]._sliceNormal, this._childrenInfo[xyz]._color, this._BBox, this._labelmap._labelIDs, this._labelmap, this._labelmap.hasLabelMap, this._labelmap._colortable._map);
+          _sliceLabel._labelmapIDs = _sliceLabelIDs._texture;
         }
         this._labelmap._children[xyz]._children[parseInt(currentIndex, 10)] = _sliceLabel;
         // add it to create the texture
@@ -624,7 +626,7 @@ X.volume.prototype.slicing_ = function() {
     // DONE RESLICING!
 
     // reset dirty flag used to force reslicing
-    this._labelmap._children[xyz]._children[parseInt(currentIndex, 10)]._dirty == false;
+    //this._labelmap._children[xyz]._children[parseInt(currentIndex, 10)]._dirty == false;
 
     // hide the old slice
     var _oldSlice = _child._children[parseInt(oldIndex, 10)];
@@ -1551,6 +1553,10 @@ X.volume.prototype.sliceInfoChanged = function(index){
   if(this.hasLabelMap) {
 
     var _sliceLabel = X.parser.reslice2(this._childrenInfo[index]._sliceOrigin, this._childrenInfo[index]._sliceXYSpacing, this._childrenInfo[index]._sliceNormal, this._childrenInfo[index]._color, this._BBox, this._labelmap._IJKVolume, this._labelmap, this._labelmap.hasLabelMap, this._labelmap._colortable._map);
+    if (goog.isDefAndNotNull(this._labelmap._labelIDs)) {
+        var _sliceLabelIDs = X.parser.reslice2(this._childrenInfo[index]._sliceOrigin, this._childrenInfo[index]._sliceXYSpacing, this._childrenInfo[index]._sliceNormal, this._childrenInfo[index]._color, this._BBox, this._labelmap._labelIDs, this._labelmap, this._labelmap.hasLabelMap, this._labelmap._colortable._map);
+        _sliceLabel._labelmapIDs = _sliceLabelIDs._texture;
+    }
     this._labelmap._children[index]._children = [];
     this._labelmap._children[index]._children = new Array(this._childrenInfo[index]._nb);
     this._labelmap._children[index]._children[Math.floor(this._childrenInfo[index]._nb/2)] = _sliceLabel;
@@ -1573,7 +1579,11 @@ X.volume.prototype.sliceInfoChanged = function(index){
 
     _slice._labelmap = _slice._texture;
     _slice._labelmap = this._labelmap._children[index]._children[Math.floor(this._childrenInfo[index]._nb/2)]._texture;
-
+    if (goog.isDefAndNotNull(this._labelmap._labelIDs)){
+      _slice._labelmapIDs = _slice._texture;
+      _slice._labelmapIDs = _sliceLabelIDs._texture;
+    }
+    _slice._texture._dirty = true;    // force redraw in 3d renderer
   }
 
  this._children[index]._children[Math.floor(this._childrenInfo[index]._nb/2)] = _slice;

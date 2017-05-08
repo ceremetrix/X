@@ -190,7 +190,8 @@ X.labelmap.prototype.__defineSetter__('labelIDs', function(ids) {
           currentIndex = this._volume._indexZ;
           
         }
-        this._children[xyz]._children[parseInt(currentIndex, 10)]._dirty = true;
+        this._volume.sliceInfoChanged(xyz)
+        //this._children[xyz]._children[parseInt(currentIndex, 10)]._dirty = true;
       }
       this.modified();
       
@@ -263,6 +264,25 @@ X.labelmap.prototype.__defineSetter__('showOnlyLabel', function(label) {
     else {
       this._showOnlyLabel.push(label);
     }
+
+    // set dirty flag for the current slice to force redraw in 3d
+    var xyz = 0;
+    for (xyz = 0; xyz < 3; xyz++) {
+      var currentIndex = 0;
+      if (xyz == 0) {
+        currentIndex = this._volume._indexX;          
+
+      } else if (xyz == 1) {
+        currentIndex = this._volume._indexY;
+        
+      } else if (xyz == 2) {
+        currentIndex = this._volume._indexZ;
+        
+      }
+      this._children[xyz]._children[currentIndex]._texture._dirty = true;
+      this._children[xyz].modified();
+    }
+
   }
 
 });

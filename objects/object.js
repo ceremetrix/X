@@ -208,13 +208,55 @@ X.object.prototype.__defineSetter__('colortable', function(colortable) {
     if (goog.isDefAndNotNull(colortable)){
       var loader = new X.loader();
       loader.load(colortable, this);
-      this._colortable = colortable;
-      this._file.dirty =  true;    
+      this._colortable = colortable;   
     }
     else {
       this._colortable = null;
-    }  
+    }
+    // force redraw in 3d renderer
+    if (this instanceof X.labelmap) {
+      for (xyz = 0; xyz < this._children.length; xyz++) {
+        var currentIndex = 0;
+        if (xyz == 0) {
+          currentIndex = this._volume._indexX;          
 
+        } else if (xyz == 1) {
+          currentIndex = this._volume._indexY;
+          
+        } else if (xyz == 2) {
+          currentIndex = this._volume._indexZ;
+          
+        }
+        this._children[xyz]._children[currentIndex]._texture._dirty = true;
+        this._children[xyz].modified();
+      }
+    } else if (this instanceof X.volume) {
+        for (xyz = 0; xyz < this._children.length; xyz++) {
+          for(var j = 0; j < this._children[xyz]._children.length; j++){
+            if(this._children[xyz]._children[j]){
+              this._children[xyz]._children[j]._texture._dirty = true;
+              this._children[xyz].modified();
+            }
+          }
+          
+          /*
+          var currentIndex = 0;
+          if (xyz == 0) {
+            currentIndex = this._indexX;          
+
+          } else if (xyz == 1) {
+            currentIndex = this._indexY;
+            
+          } else if (xyz == 2) {
+            currentIndex = this._indexZ;
+            
+          }*/
+          //this._children[xyz]._children[currentIndex]._texture._dirty = true;
+          //this._children[xyz].modified();
+         //this.modified();
+        }
+    }
+      
 });
 
 
