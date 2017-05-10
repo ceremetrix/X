@@ -206,9 +206,24 @@ X.object.prototype.__defineGetter__('colortable', function() {
 X.object.prototype.__defineSetter__('colortable', function(colortable) {
 
     if (goog.isDefAndNotNull(colortable)){
-      var loader = new X.loader();
-      loader.load(colortable, this);
-      this._colortable = colortable;   
+      if (!goog.isDefAndNotNull(colortable._filedata)) {
+        // colortable is not loaded yet 
+        var loader = new X.loader();
+        loader.load(colortable, this);
+        this._colortable = colortable;
+      }
+      else {
+        // colortable is already loaded, just copy the object
+        this._colortable = new X.colortable();
+        this._colortable._file = colortable._file;
+        this._colortable._filedata = colortable._filedata;
+        this._colortable._map = colortable._map;
+        //this._colortable._dirty = true;
+      }
+      //var loader = new X.loader();
+      //loader.load(colortable, this);
+      
+
     }
     else {
       this._colortable = null;

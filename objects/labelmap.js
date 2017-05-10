@@ -261,7 +261,15 @@ X.labelmap.prototype.__defineSetter__('showOnlyLabel', function(label) {
     if (label > this._labelIDsMax) {
       throw new Error ('Cluster ID out of range.');
     }
-    else {
+    else if (this._showOnlyLabel.includes(label)){
+      var index = this._showOnlyLabel.indexOf(label);
+      if (index > -1) {
+        this._showOnlyLabel.splice(index, 1);
+      }
+    } else if (label == -255) {
+      // show all
+      this._showOnlyLabel = [];
+    } else {
       this._showOnlyLabel.push(label);
     }
 

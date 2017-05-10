@@ -103,6 +103,18 @@ X.colortable.prototype.add = function(value, label, r, g, b, a) {
 
 
 /**
+ * Dummy function so that error doesn't get thrown when loading just colortables 
+ * into an application.
+ *
+ * @return {boolean} Just return true. This is a quick fix dummy function (hacked!)
+ */
+X.colortable.prototype.modified = function() {
+
+  return true;
+
+};
+
+/**
  * Get the color for a label value.
  *
  * @param {!number} value The label value.
