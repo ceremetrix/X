@@ -229,6 +229,7 @@ X.object.prototype.__defineSetter__('colortable', function(colortable) {
       this._colortable = null;
     }
     // force redraw in 3d renderer
+    var xyz = 0;
     if (this instanceof X.labelmap) {
       for (xyz = 0; xyz < this._children.length; xyz++) {
         var currentIndex = 0;
@@ -253,22 +254,7 @@ X.object.prototype.__defineSetter__('colortable', function(colortable) {
               this._children[xyz].modified();
             }
           }
-          
-          /*
-          var currentIndex = 0;
-          if (xyz == 0) {
-            currentIndex = this._indexX;          
 
-          } else if (xyz == 1) {
-            currentIndex = this._indexY;
-            
-          } else if (xyz == 2) {
-            currentIndex = this._indexZ;
-            
-          }*/
-          //this._children[xyz]._children[currentIndex]._texture._dirty = true;
-          //this._children[xyz].modified();
-         //this.modified();
         }
     }
       

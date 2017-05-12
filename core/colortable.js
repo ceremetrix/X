@@ -126,5 +126,5 @@ X.colortable.prototype.get = function(value) {
 
 };
 
-
+goog.exportSymbol('X.colortable', X.colortable);
 goog.exportSymbol('X.colortable.prototype.get', X.colortable.prototype.get);

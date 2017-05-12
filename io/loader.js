@@ -395,3 +395,6 @@ X.loader.extensions = {
   'JPEG': [X.parserIMAGE, 'jpeg'],
   'GIF': [X.parserIMAGE, 'gif']
 };
+
+// export symbols (required for advanced compilation)
+goog.exportSymbol('X.loader', X.loader);

@@ -153,7 +153,7 @@ X.labelmap.prototype.__defineSetter__('labelIDs', function(ids) {
         var _current_k = ids.subarray(_k * (_num_per_slice), (_k + 1)
             * _num_per_slice);
         // initiate data pointer
-        _data_pointer = 0;
+        var _data_pointer = 0;
 
         // allocate images        
         _ijk[_k] = new Array(_arrayDims[1]);
@@ -204,6 +204,18 @@ X.labelmap.prototype.__defineSetter__('labelIDs', function(ids) {
     throw new Error('Not a valid assignemnt. Must be an array and of the same size.')
   }
 
+});
+
+/**
+ * Get the label IDs array.
+ *
+ * @return {!Array} The array of label ids in IJK volume format
+ * @public
+ */
+X.labelmap.prototype.__defineGetter__('labelIDs', function() {
+
+  return this._labelIDs;
+  
 });
 
 /**
@@ -261,15 +273,15 @@ X.labelmap.prototype.__defineSetter__('showOnlyLabel', function(label) {
     if (label > this._labelIDsMax) {
       throw new Error ('Cluster ID out of range.');
     }
-    else if (this._showOnlyLabel.includes(label)){
-      var index = this._showOnlyLabel.indexOf(label);
-      if (index > -1) {
-        this._showOnlyLabel.splice(index, 1);
-      }
-    } else if (label == -255) {
+    else if (this._showOnlyLabel.indexOf(label) > -1){
+      var index = this._showOnlyLabel.indexOf(label);      
+      this._showOnlyLabel.splice(index, 1);    
+    } 
+    else if (label == -255) {
       // show all
       this._showOnlyLabel = [];
-    } else {
+    } 
+    else {
       this._showOnlyLabel.push(label);
     }
 
@@ -295,6 +307,17 @@ X.labelmap.prototype.__defineSetter__('showOnlyLabel', function(label) {
 
 });
 
+/**
+ * Get the show only labels (clusters).
+ *
+ * @return {!Array} 
+ * @public
+ */
+X.labelmap.prototype.__defineGetter__('showOnlyLabel', function(){
+
+  return this._showOnlyLabel;
+
+});
 
 // --------------------------------------
 

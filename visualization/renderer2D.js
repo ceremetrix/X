@@ -1127,7 +1127,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
     var _currentLabelMap = _slice._labelmap;
     var _currentLabelIDs = _slice._labelmapIDs;
     var _labelData = null;
-    var _labelIds = null;
+    var _labelIDs = null;
     if (_currentLabelMap) {
       _labelData = _currentLabelMap._rawData;
     }
@@ -1262,7 +1262,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                 if(_volume._parametric) {
                   // normalize the negative values between 0-127 (0:len(keys_)/2-1)
                   // positive values between 128 and 255 (len(keys_)/2 : 255)            
-                  numColors = colorTable.keys_.length;
+                  var numColors = colorTable.keys_.length;
                   var _rangeMin = 0;
                   var _rangeMax = 0; 
                   
@@ -1344,7 +1344,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                 var label_colorTable = _labelColortable._map;
     
                 var _labelmapOpacity = _labelmap._opacity; // LL added
-                var _labelOpacity = _labelData[_index+ 3]; // or * _labelmapOpacity?
+                var _labelOpacity = _labelData[_index+ 3];
                 var _labelVal = _labelData[_index];
 
                 var _labelMin = _labelmap._min;
@@ -1374,96 +1374,25 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                 else {
                     lookup_val = Math.round(255 * (_labelVal - _labelWindowLow)/(_labelWindowHigh - _labelWindowLow));
                 }
+
+                var _labelR = 0;
+                var _labelG = 0;
+                var _labelB = 0;
+                var _labelA = 0;
+
                 if(goog.isDefAndNotNull(label_colorTable.get(lookup_val))){
                   _labelR = 255 * (label_colorTable.get(lookup_val)[1]);
                   _labelG = 255 * (label_colorTable.get(lookup_val)[2]);
                   _labelB = 255 * (label_colorTable.get(lookup_val)[3]);
                   _labelA = 255 * (label_colorTable.get(lookup_val)[4]);
-                }
-                else {
-                  _labelR = 0;
-                  _labelG = 0;
-                  _labelB = 0;
-                  _labelA = 0;
-                }
+                }                
               
                 // check if all labels are shown, or just one/some 
                 if (_labelmapShowOnlyLabel.length > 0) {
                   if (goog.isDefAndNotNull(_labelmap._labelIDs)) {
                     var _refID = _labelIDs[_index];
-/*                    
-                    
-                    var _xyIndex = _index/4;
-                    var x = _xyIndex % _sliceWidth;
-                    var y = (_xyIndex - x) / _sliceWidth; 
-                    var _indexXY = goog.vec.Vec4.createFloat32FromValues( x, y, _currentSlice, 1);
-                    var _indexIJK = goog.vec.Vec4.createFloat32();
 
-                    // Go from 2d space to IJK space
-                    _XYtoIJK = _slice._XYToIJK;
-                    goog.vec.Mat4.multVec4(_XYtoIJK, _indexXY, _indexIJK);
-                    var _i = Math.floor(_indexIJK[0]);
-                    var _j = Math.floor(_indexIJK[1]);
-                    var _k = Math.floor(_indexIJK[2]);
-                    var _refID = 0;                                        
-
-                    if (this._orientation = "X") {
-                      _k = _k + _volume._dimensions[2];
-                    }
-                    if (this._orientation = "Y") {
-                      _k = _k + _volume._dimensions[2];
-                    }
-
-                    if( (0 <= _i) && (_i < _volume._dimensions[0] ) &&
-                      (0 <= _j) && (_j < _volume._dimensions[1] ) &&
-                      (0 <= _k) && (_k < _volume._dimensions[2] )) {
-
-
-                      if (!goog.isDefAndNotNull(_labelmap._labelIDs[_k])) {
-                        pause = '';
-                      }
-                      if (_j < 0) {
-                        pause = '';
-                      }
-                      _refID = _labelmap._labelIDs[_k][_j][_i];
-                    }
-
-                    /*
-                    var _pointer = 0;
-                    var _i = 0;
-                    var _j = 0;
-                    var _k = 0;
-
-                    var I = _volume._dimensions[0];
-                    var J = _volume._dimensions[1];
-                    var K = _volume._dimensions[2];
-
-                    var x = _xyIndex % _sliceWidth;
-                    var y = (_xyIndex - _x) / _sliceWidth;
-                    var z = _currentSlice;
-
-                    if (this._orientation == "X") {
-                      _i = z;
-                      _j = x;
-                      _k = y;                      
-                      
-                    } else if (this._orientation == "Y") {
-                      _i = x;
-                      _j = z;
-                      _k = y;
-
-                    } else if (this._orientattion == "Z") {
-                      _i = x;
-                      _j = y;
-                      _k = z;
-                    }
-
-                    var _pointer = (_j * I) + _i + (_k * I * J); 
-                                       
-                    var _refID = _labelmap._labelIDs[_pointer];
-                    */
-
-                    if (_labelmapShowOnlyLabel.includes(_refID)) {
+                    if (_labelmapShowOnlyLabel.indexOf(_refID) != -1) {
                       // the label ID for this voxel is included in show only
                       _label = [_labelR, _labelG, _labelB, _labelA];
                     } 

@@ -675,14 +675,6 @@ X.renderer3D.prototype.update_ = function(object) {
     return;
   }
 
-  // LL added: check to see if its a change in 3d VolumeRendeing; if so, update shader: THIS IS HACKED!!
-      /*if(goog.isDefAndNotNull(volume)){
-        if (this._context.getUniform(this._shaderProgram, this._uniformLocations.get("volumeRendering"))
-            != volume._volumeRendering){
-              this._context.uniform1i(this._uniformLocations.get(X.shaders.uniforms.VOLUMERENDERING), volume._volumeRendering);
-            }
-      }*/
-
       if(goog.isDefAndNotNull(object)){
         if (this._context.getUniform(this._shaderProgram, this._uniformLocations.get("volumeRendering"))
             != object._volumeRendering){
@@ -996,7 +988,7 @@ X.renderer3D.prototype.update_ = function(object) {
                     if(object._volume._parametric) {
                       // normalize the negative values between 0-127 (0:len(keys_)/2-1)
                       // positive values between 128 and 255 (len(keys_)/2 : 255)            
-                      numColors = colorTable.keys_.length;
+                      var numColors = colorTable.keys_.length;
                       var _rangeMin = 0;
                       var _rangeMax = 0;
 
@@ -1117,7 +1109,7 @@ X.renderer3D.prototype.update_ = function(object) {
                 if (goog.isDefAndNotNull(_labelmap._labelIDs) && _labelmap._showOnlyLabel.length > 0) {
                   var _labelID_data = object._labelmapIDs._rawData;  // texture containing 'cluster ID' for each voxel
                   var _idValue = _labelID_data[i];   // cluster ID value
-                  if (_labelmap._showOnlyLabel.includes(_idValue)) {
+                  if (_labelmap._showOnlyLabel.indexOf(_idValue) != -1) {
                     _origIntensityA = _origIntensityA * _labelmapOpacity;
                   } else {
                     _origIntensityA = 0;
@@ -1130,7 +1122,7 @@ X.renderer3D.prototype.update_ = function(object) {
                       _origIntensityA = _origIntensityA * _labelmapOpacity;
                   } else {
                       // show only the label which matches in color
-                      if (X.array.compare(_labelmapShowOnlyColor, _labelData, 0, _index, 4)) {
+                      if (X.array.compare(_labelmapShowOnlyColor, texture._rawData, 0, i, 4)) {
                         // this label matches
                         _origIntensityA = _origIntensityA * _labelmapOpacity;
                       }

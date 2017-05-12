@@ -302,7 +302,7 @@ X.volume = function(volume) {
    * The image pixels
    *
    * @type {?Array}
-   * @protected
+   * @private
    */
   this._data = null;
 
@@ -576,9 +576,6 @@ X.volume.prototype.slicing_ = function() {
 
 
     // RESLICE VOLUME IF NECESSARY!
-    /*if(!goog.isDefAndNotNull(this._children[xyz]._children[parseInt(currentIndex, 10)]) ||
-        this._labelmap._children[xyz]._children[parseInt(currentIndex, 10)]._dirty == true){
-*/
     if(!goog.isDefAndNotNull(this._children[xyz]._children[parseInt(currentIndex, 10)])){
       // GO reslice!
       var _sliceOrigin = goog.vec.Vec3.createFloat32();
@@ -1505,6 +1502,18 @@ X.volume.prototype.__defineGetter__('parametric', function() {
 X.volume.prototype.__defineSetter__('parametric', function(parametric) {
 
       this._parametric = parametric;
+
+});
+
+/**
+ * Get the raw data.
+ *
+ * @return {!Array} The raw data array.
+ * @public
+ */
+X.volume.prototype.__defineGetter__('data', function() {
+
+  return this._data;
 
 });
 
