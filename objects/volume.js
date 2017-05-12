@@ -1086,6 +1086,29 @@ X.volume.prototype.__defineSetter__('windowHigh', function(windowHigh) {
 
 });
 
+/**
+ * Return the paramMin value.
+ *
+ * @return {!number} 
+ * @public
+ */
+X.volume.prototype.__defineGetter__('paramMin', function() {
+
+  return this._paramMin;
+
+});
+
+/**
+ * Return the paramMax value.
+ *
+ * @return {!number} 
+ * @public
+ */
+X.volume.prototype.__defineGetter__('paramMax', function() {
+
+  return this._paramMax;
+
+});
 
 /**
  * Return the borders flag.
