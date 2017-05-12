@@ -76,6 +76,18 @@ goog.inherits(X.colortable, X.base);
 
 
 /**
+ * Return the map.
+ *
+ * @return {!goog.structs.Map}
+ * @public
+ */
+X.colortable.prototype.__defineGetter__('map', function() {
+
+  return this._map;
+
+});
+
+/**
  * Add an entry to this color table.
  *
  * @param {!number} value The number to map to a color.
