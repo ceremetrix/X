@@ -215,10 +215,10 @@ X.shaders = function() {
   t2 += '     vec3 _minrange = vec3(_windowLow,_windowLow,_windowLow);\n';
   t2 += '     vec3 _maxrange = vec3(_windowHigh,_windowHigh,_windowHigh);\n';
   t2 += '     vec3 fac = _maxrange - _minrange;\n';
-  // LL added:
-  t2 += '     textureSum.r = (textureSum.r - _windowLow)/(_windowHigh - _windowLow);\n';
-  t2 += '     textureSum.g = (textureSum.g - _windowLow)/(_windowHigh - _windowLow);\n';
-  t2 += '     textureSum.b = (textureSum.b - _windowLow)/(_windowHigh - _windowLow);\n';
+  // LL added:  TOOK OUT WINDOW/LEVEL ADJUSTMENT B/C ITS ALREADY DONE IN renderer3d !!!
+  //t2 += '     textureSum.r = (textureSum.r - _windowLow)/(_windowHigh - _windowLow);\n';
+  //t2 += '     textureSum.g = (textureSum.g - _windowLow)/(_windowHigh - _windowLow);\n';
+  //t2 += '     textureSum.b = (textureSum.b - _windowLow)/(_windowHigh - _windowLow);\n';
   //t2 += '     textureSum.a = objectOpacity; \n';  // transparency for multiple volumes?? nope - commenting out sets transparancy correct
   // LL change: t2 += '     textureSum = vec4((textureSum.r - _minrange)/fac,1);\n';
   // map volume scalars to a linear color gradient
@@ -226,8 +226,7 @@ X.shaders = function() {
   t2 += '   }\n';
   t2 += '   if (useLabelMapTexture) {\n'; // special case for label maps
   t2 += '     vec4 texture2 = texture2D(textureSampler2,fragmentTexturePos);\n';
-  t2 += '     if (texture2.a > 0.0) {\n'; // check if this is not the background
-  // label
+  t2 += '     if (texture2.a > 0.0) {\n'; // check if this is not the background label
   t2 += '         if (labelmapColor.a != -255.0) {\n'; // check if only one color should be shown
   t2 += '           if (all(equal(floor(texture2 * vec4(255)), labelmapColor))) {\n'; // if equal, mix colors
   t2 += '             if (labelmapOpacity < 1.0) {\n'; // transparent label map
@@ -243,7 +242,6 @@ X.shaders = function() {
   t2 += '             textureSum = texture2;\n'; // fully opaque label map
   t2 += '           }\n';
   t2 += '         }\n';
-
   t2 += '     }\n';
   t2 += '   }\n';
   // threshold functionality for 1-channel volumes

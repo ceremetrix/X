@@ -1225,7 +1225,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
           // LL custom code, similar to D.B. but important differences:
           //
 
-          // apply window/level (already applied if colortable exists) <--nope
+          // apply window/level 
           var _window = _windowHigh - _windowLow;
           var _level = _window/2 + _windowLow;
           

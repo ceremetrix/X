@@ -1032,14 +1032,30 @@ X.renderer3D.prototype.update_ = function(object) {
                 }
               }
               else {
-                _origIntensityR = Math.round(255 * (_intensity - _windowLow)/(_windowHigh - _windowLow));
-                _origIntensityG = Math.round(255 * (_intensity - _windowLow)/(_windowHigh - _windowLow));
-                _origIntensityB = Math.round(255 * (_intensity - _windowLow)/(_windowHigh - _windowLow));
-                if (goog.isDefAndNotNull(_volumeOpacity)){  // LL added for multiple volumes
-                  _origIntensityA = 255 * _volumeOpacity; 
+                if(_intensity < _level - _window/2 ){
+                    _origIntensity = 0;
+                    _origIntensityR = 0;
+                    _origIntensityG = 0;
+                    _origIntensityB = 0;
+                    _origIntensityA = 0;
                 }
-                else{
-                  _origIntensityA = 255;
+                else if(_intensity > _level + _window/2 ){
+                    _origIntensity = 255;
+                    _origIntensityR = 255;
+                    _origIntensityG = 255;
+                    _origIntensityB = 255;
+                    _origIntensityA = 255;
+                }
+                else {
+                  _origIntensityR = Math.round(255 * (_intensity - _windowLow)/(_windowHigh - _windowLow));
+                  _origIntensityG = Math.round(255 * (_intensity - _windowLow)/(_windowHigh - _windowLow));
+                  _origIntensityB = Math.round(255 * (_intensity - _windowLow)/(_windowHigh - _windowLow));
+                  if (goog.isDefAndNotNull(_volumeOpacity)){  // LL added for multiple volumes
+                    _origIntensityA = 255 * _volumeOpacity; 
+                  }
+                  else{
+                    _origIntensityA = 255;
+                  }
                 }
               }
               // apply thresholding
