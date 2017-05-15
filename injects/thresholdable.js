@@ -117,7 +117,16 @@ X.thresholdable.prototype.__defineSetter__('lowerThreshold', function(
 
   this._lowerThreshold = lowerThreshold;
   
-  // no modified event since the rendering loop always checks it
+  // no modified event since the rendering loop always checks it <-- Not sure if that's true...
+  // set texture to dirty to force redraw in 3d
+  for (var xyz = 0; xyz < this._children.length; xyz++) {
+    for(var j = 0; j < this._children[xyz]._children.length; j++){
+      if(this._children[xyz]._children[j]){
+        this._children[xyz]._children[j]._texture._dirty = true;
+        this._children[xyz].modified();
+      }
+    }
+  }
   
 });
 
@@ -147,6 +156,15 @@ X.thresholdable.prototype.__defineSetter__('upperThreshold', function(
   this._upperThreshold = upperThreshold;
   
   // no modified event since the rendering loop always checks it
+  // set texture to dirty to force redraw in 3d
+  for (var xyz = 0; xyz < this._children.length; xyz++) {
+    for(var j = 0; j < this._children[xyz]._children.length; j++){
+      if(this._children[xyz]._children[j]){
+        this._children[xyz]._children[j]._texture._dirty = true;
+        this._children[xyz].modified();
+      }
+    }
+  }
   
 });
 

@@ -1057,7 +1057,7 @@ X.volume.prototype.__defineSetter__('windowLow', function(windowLow) {
 
   this._windowLow = windowLow;
   // set texture to dirty to force redraw in 3d
-  for (xyz = 0; xyz < this._children.length; xyz++) {
+  for (var xyz = 0; xyz < this._children.length; xyz++) {
     for(var j = 0; j < this._children[xyz]._children.length; j++){
       if(this._children[xyz]._children[j]){
         this._children[xyz]._children[j]._texture._dirty = true;
@@ -1094,7 +1094,7 @@ X.volume.prototype.__defineSetter__('windowHigh', function(windowHigh) {
   this._windowHigh = windowHigh;
 
   // set texture to dirty to force redraw in 3d
-  for (xyz = 0; xyz < this._children.length; xyz++) {
+  for (var xyz = 0; xyz < this._children.length; xyz++) {
     for(var j = 0; j < this._children[xyz]._children.length; j++){
       if(this._children[xyz]._children[j]){
         this._children[xyz]._children[j]._texture._dirty = true;

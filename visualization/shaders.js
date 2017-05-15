@@ -256,7 +256,6 @@ X.shaders = function() {
   t2 += '       }\n'
   t2 += '     } else {\n';
   t2 += '         if ((texture1.r < _volumeLowerThreshold && texture1.g < _volumeLowerThreshold && texture1.b < _volumeLowerThreshold)||\n';
-  t2 += '             (texture1.r > _volumeUpperThreshold && texture1.g > _volumeUpperThreshold && texture1.b > _volumeUpperThreshold)||\n';
   t2 += '             texture1.a == 0.0 ) {\n';
   t2 += '           discard;\n';
   t2 += '         };\n';  //  Added conditions for g and b channels -LL
