@@ -1094,7 +1094,7 @@ X.renderer3D.prototype.update_ = function(object) {
                   var _rangeMin = 0;
                   var _rangeMax = 0; 
                   
-                  if (Math.round(_labelVal) < 0) {
+                  if (Math.round(_labelVal) <= 0) {
                     _rangeMin = _labelWindowLow;
                     _rangeMax = _labelmap._paramMin;
                     lookup_val = Math.round(((_labelVal)-_rangeMin)*((labelColors/2)-1)/(_rangeMax - _rangeMin));

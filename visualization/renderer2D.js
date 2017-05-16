@@ -1360,7 +1360,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                   var _rangeMin = 0;
                   var _rangeMax = 0; 
                   
-                  if (Math.round(_labelVal) < 0) {
+                  if (Math.round(_labelVal) <= 0) {
                     _rangeMin = _labelWindowLow;
                     _rangeMax = _labelmap._paramMin;
                     lookup_val = Math.round(((_labelVal)-_rangeMin)*((labelColors/2)-1)/(_rangeMax - _rangeMin));
