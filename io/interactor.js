@@ -1177,19 +1177,20 @@ X.interactor.prototype.onKey_ = function(event) {
   // get the keyCode
   var keyCode = event.keyCode;
 
-  if (keyCode == 82 && !alt && !ctrl && !meta && !shift) {
+  //if (keyCode == 82 && !alt && !ctrl && !meta && !shift) {
 
     // 'r' but without any other control keys since we do not want to limit the
     // user to press for example CTRL+R to reload the page
 
     // prevent any other actions..
-    event.preventDefault();
+    //event.preventDefault();
 
     // fire the ResetViewEvent
-    var e = new X.event.ResetViewEvent();
-    this.dispatchEvent(e);
+    //var e = new X.event.ResetViewEvent();
+    //this.dispatchEvent(e);
 
-  } else if (keyCode >= 37 && keyCode <= 40) {
+  //} else 
+  if (keyCode >= 37 && keyCode <= 40) {
 
     // keyCode <= 37 and >= 40 means the arrow keys
 
