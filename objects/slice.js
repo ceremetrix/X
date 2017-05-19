@@ -409,7 +409,8 @@ X.slice.prototype.create_ = function() {
   this._normals.add(frontVector.x, frontVector.y, frontVector.z);
 
   // add some borders, if enabled
-  if (this._borders) {
+  if (!(this._volume instanceof X.labelmap) && this._volume._borders &&
+        this._volume._visible) {
     var borders = new X.object();
 
     // allocate memory

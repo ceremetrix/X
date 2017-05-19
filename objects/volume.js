@@ -515,11 +515,11 @@ X.volume.prototype.modified = function(propagateEvent) {
 
     }
 
-    if (!this._visible) {
+//    if (!this._visible) {
 
-      return;
+//      return;
 
-    }
+//    }
 
     this.slicing_();
 
