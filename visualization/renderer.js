@@ -1369,6 +1369,18 @@ X.renderer.prototype.__defineGetter__('container', function() {
 
 });
 
+/**
+ * Get the canvas of this renderer
+ * 
+ * @return {?Element} The canvas element
+ * @public
+ */
+X.renderer.prototype.__defineGetter__('canvas', function() {
+  
+  return this._canvas;
+
+});
+
 // LL added from D.B. version:-------------------------
 /**
    GETTER FOR OBJECTS
