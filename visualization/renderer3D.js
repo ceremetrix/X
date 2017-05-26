@@ -993,14 +993,26 @@ X.renderer3D.prototype.update_ = function(object) {
                       var _rangeMax = 0;
 
                       if (Math.round(_intensity) <= 0) {
-                      _rangeMax = _windowLow;
-                      _rangeMin = 0;
-                      norm_val = Math.round((numColors/2)-1 - ((Math.abs(_intensity)-_rangeMin)*(-(numColors/2)-1)/(_rangeMax - _rangeMin)));
+                        _rangeMax = _windowLow;
+                        _rangeMin = _paramMin;
+                        if (_intensity <= _rangeMin) {
+                          if (_intensity < _rangeMax) {
+                            norm_val = 0;
+                          } else {
+                            norm_val = Math.round((numColors/2)-1 - ((Math.abs(_intensity)-_rangeMin)*(-(numColors/2)-1)/(_rangeMax - _rangeMin)));
+                          }
+                        }                        
                       }
                       else if(Math.round(_intensity) > 0){
                         _rangeMax = _windowHigh;
-                        _rangeMin = 0;
-                        norm_val = Math.round((numColors/2) + ((_intensity-_rangeMin)*((numColors-1)-(numColors/2))/(_rangeMax - _rangeMin))); 
+                        _rangeMin = _paramMax;
+                        if (_intensity >= _rangeMin) {
+                          if (_intensity > _rangeMax) {
+                            norm_val = numColors;
+                          } else {
+                            norm_val = Math.round((numColors/2) + ((_intensity-_rangeMin)*((numColors-1)-(numColors/2))/(_rangeMax - _rangeMin))); 
+                          }
+                        }                        
                       }
                     }
                     else {
@@ -1097,12 +1109,24 @@ X.renderer3D.prototype.update_ = function(object) {
                   if (Math.round(_labelVal) <= 0) {
                     _rangeMin = _labelWindowLow;
                     _rangeMax = _labelmap._paramMin;
-                    lookup_val = Math.round(((_labelVal)-_rangeMin)*((labelColors/2)-1)/(_rangeMax - _rangeMin));
+                    if (_labelVal <= _rangeMax) {
+                      if (_labelVal < _rangeMin) {
+                        lookup_val = 0;
+                      } else {
+                        lookup_val = Math.round(((_labelVal)-_rangeMin)*((labelColors/2)-1)/(_rangeMax - _rangeMin));
+                      }
+                    }                    
                   }
                   else if(Math.round(_labelVal) > 0){
                     _rangeMax = _labelWindowHigh;
                     _rangeMin = _labelmap._paramMax;
-                    lookup_val = Math.round((labelColors/2) + ((_labelVal-_rangeMin)*((labelColors-1)-(labelColors/2))/(_rangeMax - _rangeMin))); 
+                    if (_labelVal >= _rangeMin) {
+                      if (_labelVal > _rangeMax) {
+                        lookup_val = labelColors;
+                      } else {
+                        lookup_val = Math.round((labelColors/2) + ((_labelVal-_rangeMin)*((labelColors-1)-(labelColors/2))/(_rangeMax - _rangeMin))); 
+                      }
+                    }                    
                   }              
                 }
                 else {

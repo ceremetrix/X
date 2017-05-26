@@ -204,6 +204,38 @@ X.renderer2D = function() {
   this._labelmapShowOnlyLabel = [];
 
   /**
+   * The buffer of the paramMin labelmap attribute. (LL added)
+   *
+   * @type {!number}
+   * @protected
+   */
+  this._LabelparamMin = 0;
+
+  /**
+   * The buffer of the paramMax labelmap attribute. (LL added)
+   *
+   * @type {!number}
+   * @protected
+   */
+  this._LabelparamMax = 0;
+
+  /**
+   * The buffer of the paramMin volume attribute. (LL added)
+   *
+   * @type {!number}
+   * @protected
+   */
+  this._VolparamMin = 0;
+
+  /**
+   * The buffer of the paramMax volume attribute. (LL added)
+   *
+   * @type {!number}
+   * @protected
+   */
+  this._VolparamMax = 0;
+
+  /**
    * The buffer for current volume colortable (LL added)
    * 
    * @type {?string}
@@ -1162,6 +1194,8 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
     var _upperThreshold = _volume._upperThreshold;
     var _windowLow = _volume._windowLow;
     var _windowHigh = _volume._windowHigh;
+    var _volParamMax = _volume.paramMax;
+    var _volParamMin = _volume.paramMin;
 
     var _volumeColortable = null;
     var _labelmapColortable = null; 
@@ -1170,6 +1204,8 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
     }
     if(goog.isDefAndNotNull(_volume._labelmap)) {
       _labelmapColortable = _volume._labelmap._colortable.file;
+      var _labParamMax = _volume._labelmap.paramMax;
+      var _labParamMin = _volume._labelmap.paramMin;
     }
 
     // caching mechanism
@@ -1188,7 +1224,11 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
         this._lowerThreshold != _lowerThreshold ||
         this._upperThreshold != _upperThreshold ||
         this._windowLow != _windowLow || 
-        this._windowHigh != _windowHigh || 
+        this._windowHigh != _windowHigh ||
+        (_volume._parametric && (this._VolparamMax != _volParamMax ||
+        this._VolparamMin != _volParamMin)) ||
+        (_labelmap && (this.labParamMax != _labParamMax ||
+        this._labParamMin != _labParamMin)) || 
         (_labelmapShowOnlyColor && !X.array
         .compare(_labelmapShowOnlyColor, this._labelmapShowOnlyColor, 0, 0, 4)) ||
         this._labelmapShowOnlyLabel.length != _labelmapShowOnlyLabel.length);
@@ -1268,13 +1308,25 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                   
                   if (Math.round(_intensity) <= 0) {
                     _rangeMax = _windowLow;
-                    _rangeMin = 0;
-                    norm_val = Math.round((numColors/2)-1 - ((Math.abs(_intensity)-_rangeMin)*(-(numColors/2)-1)/(_windowLow - _rangeMin)));
+                    _rangeMin = _volume._paramMin;
+                    if (_intensity <= _rangeMin) {
+                      if (_intensity < _windowLow) {
+                        norm_val = 0;
+                      } else {
+                        norm_val = Math.round((numColors/2)-1 - ((Math.abs(_intensity)-_rangeMin)*(-(numColors/2)-1)/(_windowLow - _rangeMin)));
+                      }
+                    }           
                   }
                   else if(Math.round(_intensity) > 0){
                     _rangeMax = _windowHigh;
-                    _rangeMin = 0;
-                    norm_val = Math.round((numColors/2) + ((Math.abs(_intensity)-_rangeMin)*((numColors-1)-(numColors/2))/(_windowHigh - _rangeMin))); 
+                    _rangeMin = volume._paramMax;
+                    if (_intensity >= _rangeMin) {
+                      if (_intensity > _rangeMax) {
+                        norm_val = numColors;
+                      } else {
+                        norm_val = Math.round((numColors/2) + ((Math.abs(_intensity)-_rangeMin)*((numColors-1)-(numColors/2))/(_windowHigh - _rangeMin))); 
+                      }
+                    }        
                   }              
                 }
                 else {
@@ -1343,7 +1395,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                 var _labelColortable = _labelmap._colortable;
                 var label_colorTable = _labelColortable._map;
     
-                var _labelmapOpacity = _labelmap._opacity; // LL added
+                var _labelmapOpacity = _labelmap._opacity; 
                 var _labelOpacity = _labelData[_index+ 3];
                 var _labelVal = _labelData[_index];
 
@@ -1363,12 +1415,24 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                   if (Math.round(_labelVal) <= 0) {
                     _rangeMin = _labelWindowLow;
                     _rangeMax = _labelmap._paramMin;
-                    lookup_val = Math.round(((_labelVal)-_rangeMin)*((labelColors/2)-1)/(_rangeMax - _rangeMin));
+                    if (_labelVal <= _rangeMax) {
+                      if (_labelVal < _rangeMin) {
+                        lookup_val = 0;
+                      } else {
+                        lookup_val = Math.round(((_labelVal)-_rangeMin)*((labelColors/2)-1)/(_rangeMax - _rangeMin));
+                      }
+                    }                
                   }
                   else if(Math.round(_labelVal) > 0){
                     _rangeMax = _labelWindowHigh;
                     _rangeMin = _labelmap._paramMax;
-                    lookup_val = Math.round((labelColors/2) + ((_labelVal-_rangeMin)*((labelColors-1)-(labelColors/2))/(_rangeMax - _rangeMin))); 
+                    if (_labelVal >= _rangeMin) {
+                      if (_labelVal > _rangeMax) {
+                        lookup_val = labelColors;
+                      } else{
+                        lookup_val = Math.round((labelColors/2) + ((_labelVal-_rangeMin)*((labelColors-1)-(labelColors/2))/(_rangeMax - _rangeMin)));
+                      }
+                    }          
                   }              
                 }
                 else {
@@ -1470,6 +1534,8 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
           this._windowLow = _windowLow;
           this._windowHigh = _windowHigh;
           this._volumeColortable = _volumeColortable;
+          this._VolparamMax = _volParamMax;
+          this._VolparamMin = _volParamMin;
 
           if (_currentLabelMap) {
 
@@ -1477,6 +1543,8 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
             this._labelmapShowOnlyColor = _labelmapShowOnlyColor;
             this._labelmapColortable = _labelmapColortable;
             this._labelmapShowOnlyLabel = _labelmapShowOnlyLabel;
+            this._labParamMax = _labParamMax;
+            this._labParamMin = _labParamMin;
 
           }
 

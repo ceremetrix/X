@@ -1056,15 +1056,35 @@ X.volume.prototype.__defineGetter__('windowLow', function() {
 X.volume.prototype.__defineSetter__('windowLow', function(windowLow) {
 
   this._windowLow = windowLow;
-  // set texture to dirty to force redraw in 3d
-  for (var xyz = 0; xyz < this._children.length; xyz++) {
-    for(var j = 0; j < this._children[xyz]._children.length; j++){
-      if(this._children[xyz]._children[j]){
-        this._children[xyz]._children[j]._texture._dirty = true;
+ // force redraw in 3d renderer
+    var xyz = 0;
+    if (this instanceof X.labelmap) {
+      for (xyz = 0; xyz < this._children.length; xyz++) {
+        var currentIndex = 0;
+        if (xyz == 0) {
+          currentIndex = this._volume._indexX;          
+
+        } else if (xyz == 1) {
+          currentIndex = this._volume._indexY;
+          
+        } else if (xyz == 2) {
+          currentIndex = this._volume._indexZ;
+          
+        }
+        this._children[xyz]._children[currentIndex]._texture._dirty = true;
         this._children[xyz].modified();
       }
+    } else if (this instanceof X.volume) {
+        for (xyz = 0; xyz < this._children.length; xyz++) {
+          for(var j = 0; j < this._children[xyz]._children.length; j++){
+            if(this._children[xyz]._children[j]){
+              this._children[xyz]._children[j]._texture._dirty = true;
+              this._children[xyz].modified();
+            }
+          }
+
+        }
     }
-  }
 
 });
 
@@ -1093,15 +1113,119 @@ X.volume.prototype.__defineSetter__('windowHigh', function(windowHigh) {
 
   this._windowHigh = windowHigh;
 
-  // set texture to dirty to force redraw in 3d
-  for (var xyz = 0; xyz < this._children.length; xyz++) {
-    for(var j = 0; j < this._children[xyz]._children.length; j++){
-      if(this._children[xyz]._children[j]){
-        this._children[xyz]._children[j]._texture._dirty = true;
+  // force redraw in 3d renderer
+    var xyz = 0;
+    if (this instanceof X.labelmap) {
+      for (xyz = 0; xyz < this._children.length; xyz++) {
+        var currentIndex = 0;
+        if (xyz == 0) {
+          currentIndex = this._volume._indexX;          
+
+        } else if (xyz == 1) {
+          currentIndex = this._volume._indexY;
+          
+        } else if (xyz == 2) {
+          currentIndex = this._volume._indexZ;
+          
+        }
+        this._children[xyz]._children[currentIndex]._texture._dirty = true;
         this._children[xyz].modified();
       }
+    } else if (this instanceof X.volume) {
+        for (xyz = 0; xyz < this._children.length; xyz++) {
+          for(var j = 0; j < this._children[xyz]._children.length; j++){
+            if(this._children[xyz]._children[j]){
+              this._children[xyz]._children[j]._texture._dirty = true;
+              this._children[xyz].modified();
+            }
+          }
+
+        }
     }
-  }
+
+});
+
+/**
+ * Set the paramMin value.
+ *
+ * @param {!number}
+ * @public
+ */
+X.volume.prototype.__defineSetter__('paramMin', function(paramMin) {
+
+  this._paramMin = paramMin;
+
+  // force redraw in 3d renderer
+    var xyz = 0;
+    if (this instanceof X.labelmap) {
+      for (xyz = 0; xyz < this._children.length; xyz++) {
+        var currentIndex = 0;
+        if (xyz == 0) {
+          currentIndex = this._volume._indexX;          
+
+        } else if (xyz == 1) {
+          currentIndex = this._volume._indexY;
+          
+        } else if (xyz == 2) {
+          currentIndex = this._volume._indexZ;
+          
+        }
+        this._children[xyz]._children[currentIndex]._texture._dirty = true;
+        this._children[xyz].modified();
+      }
+    } else if (this instanceof X.volume) {
+        for (xyz = 0; xyz < this._children.length; xyz++) {
+          for(var j = 0; j < this._children[xyz]._children.length; j++){
+            if(this._children[xyz]._children[j]){
+              this._children[xyz]._children[j]._texture._dirty = true;
+              this._children[xyz].modified();
+            }
+          }
+
+        }
+    }
+
+});
+
+/**
+ * Set the paramMin value.
+ *
+ * @param {!number}
+ * @public
+ */
+X.volume.prototype.__defineSetter__('paramMax', function(paramMax) {
+
+  this._paramMax = paramMax;
+
+  // force redraw in 3d renderer
+    var xyz = 0;
+    if (this instanceof X.labelmap) {
+      for (xyz = 0; xyz < this._children.length; xyz++) {
+        var currentIndex = 0;
+        if (xyz == 0) {
+          currentIndex = this._volume._indexX;          
+
+        } else if (xyz == 1) {
+          currentIndex = this._volume._indexY;
+          
+        } else if (xyz == 2) {
+          currentIndex = this._volume._indexZ;
+          
+        }
+        this._children[xyz]._children[currentIndex]._texture._dirty = true;
+        this._children[xyz].modified();
+      }
+    } else if (this instanceof X.volume) {
+        for (xyz = 0; xyz < this._children.length; xyz++) {
+          for(var j = 0; j < this._children[xyz]._children.length; j++){
+            if(this._children[xyz]._children[j]){
+              this._children[xyz]._children[j]._texture._dirty = true;
+              this._children[xyz].modified();
+            }
+          }
+
+        }
+    }
 
 });
 
