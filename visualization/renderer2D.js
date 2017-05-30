@@ -1308,7 +1308,11 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                   
                   if (Math.round(_intensity) <= 0) {
                     _rangeMax = _windowLow;
-                    _rangeMin = _volume._paramMin;
+                    if (Math.round(_volume._paramMin) == 0) {
+                      _rangeMin = 0;
+                    } else{
+                      _rangeMin = _volume._paramMin;
+                    }                    
                     if (_intensity <= _rangeMin) {
                       if (_intensity < _windowLow) {
                         norm_val = 0;
@@ -1319,7 +1323,11 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                   }
                   else if(Math.round(_intensity) > 0){
                     _rangeMax = _windowHigh;
-                    _rangeMin = volume._paramMax;
+                    if (Math.round(_volume._paramMax) == 0){
+                      _rangeMin = 0;
+                    } else {
+                      _rangeMin = _volume._paramMax;
+                    }                    
                     if (_intensity >= _rangeMin) {
                       if (_intensity > _rangeMax) {
                         norm_val = numColors;
@@ -1404,7 +1412,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                 var _labelWindowLow = _labelmap._windowLow;
                 var _labelWindowHigh = _labelmap._windowHigh;
 
-                var lookup_val = -Infinity;
+                var lookup_val = -Infinity;             
 
                 if (_volume._labelmap._parametric) {
                   // normalize according to same logic as above 
@@ -1412,9 +1420,13 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                   var _rangeMin = 0;
                   var _rangeMax = 0; 
                   
-                  if (Math.round(_labelVal) <= 0) {
+                  if (_labelVal <= 0) {
                     _rangeMin = _labelWindowLow;
-                    _rangeMax = _labelmap._paramMin;
+                    if (Math.round(_labelmap._paramMin) == 0) {
+                      _rangeMax = 0;
+                    } else{
+                      _rangeMax = _labelmap._paramMin;
+                    }
                     if (_labelVal <= _rangeMax) {
                       if (_labelVal < _rangeMin) {
                         lookup_val = 0;
@@ -1423,9 +1435,13 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                       }
                     }                
                   }
-                  else if(Math.round(_labelVal) > 0){
+                  else if(_labelVal > 0){
                     _rangeMax = _labelWindowHigh;
-                    _rangeMin = _labelmap._paramMax;
+                    if (Math.round(_labelmap._paramMax) == 0) {
+                      _rangeMin = 0;
+                    } else {
+                      _rangeMin = _labelmap._paramMax;              
+                    }
                     if (_labelVal >= _rangeMin) {
                       if (_labelVal > _rangeMax) {
                         lookup_val = labelColors;
@@ -1449,7 +1465,7 @@ X.renderer2D.prototype.render_ = function(picking, invoked) {
                   _labelG = 255 * (label_colorTable.get(lookup_val)[2]);
                   _labelB = 255 * (label_colorTable.get(lookup_val)[3]);
                   _labelA = 255 * (label_colorTable.get(lookup_val)[4]);
-                }                
+                }           
               
                 // check if all labels are shown, or just one/some 
                 if (_labelmapShowOnlyLabel.length > 0) {

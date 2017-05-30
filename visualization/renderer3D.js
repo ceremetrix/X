@@ -994,7 +994,11 @@ X.renderer3D.prototype.update_ = function(object) {
 
                       if (Math.round(_intensity) <= 0) {
                         _rangeMax = _windowLow;
-                        _rangeMin = _paramMin;
+                        if (Math.round(_paramMin) == 0) {
+                          _rangeMin = 0;
+                        } else {
+                          _rangeMin = _paramMin;
+                        }                        
                         if (_intensity <= _rangeMin) {
                           if (_intensity < _rangeMax) {
                             norm_val = 0;
@@ -1003,9 +1007,13 @@ X.renderer3D.prototype.update_ = function(object) {
                           }
                         }                        
                       }
-                      else if(Math.round(_intensity) > 0){
+                      else if(Math.round(_intensity > 0)){
                         _rangeMax = _windowHigh;
-                        _rangeMin = _paramMax;
+                        if (Math.round(_paramMax) == 0) {
+                          _rangeMin = 0;
+                        } else {
+                          _rangeMin = _paramMax;
+                        }                        
                         if (_intensity >= _rangeMin) {
                           if (_intensity > _rangeMax) {
                             norm_val = numColors;
@@ -1106,9 +1114,13 @@ X.renderer3D.prototype.update_ = function(object) {
                   var _rangeMin = 0;
                   var _rangeMax = 0; 
                   
-                  if (Math.round(_labelVal) <= 0) {
+                  if (_labelVal <= 0) {
                     _rangeMin = _labelWindowLow;
-                    _rangeMax = _labelmap._paramMin;
+                    if (Math.round(_labelmap._paramMin) == 0) {
+                      _rangeMax = 0;
+                    } else {
+                      _rangeMax = _labelmap._paramMin;
+                    }
                     if (_labelVal <= _rangeMax) {
                       if (_labelVal < _rangeMin) {
                         lookup_val = 0;
@@ -1117,9 +1129,13 @@ X.renderer3D.prototype.update_ = function(object) {
                       }
                     }                    
                   }
-                  else if(Math.round(_labelVal) > 0){
+                  else if(_labelVal > 0){
                     _rangeMax = _labelWindowHigh;
-                    _rangeMin = _labelmap._paramMax;
+                    if (Math.round(_labelmap._paramMax) == 0) {
+                      _rangeMin =0;
+                    } else {
+                      _rangeMin = _labelmap._paramMax;
+                    }
                     if (_labelVal >= _rangeMin) {
                       if (_labelVal > _rangeMax) {
                         lookup_val = labelColors;
