@@ -1062,6 +1062,7 @@ X.volume.prototype.__defineSetter__('windowLow', function(windowLow) {
 
   this._windowLow = windowLow;
 
+  var xyz = 0;
   if (this instanceof X.volume) {
     for (xyz = 0; xyz < this._children.length; xyz++) {
       var currentIndex = 0;
@@ -1136,9 +1137,8 @@ X.volume.prototype.__defineGetter__('windowHigh', function() {
 X.volume.prototype.__defineSetter__('windowHigh', function(windowHigh) {
 
   this._windowHigh = windowHigh;
-  
-  // -------  temp ok block
 
+  var xyz = 0;
   if (this instanceof X.volume) {
     for (xyz = 0; xyz < this._children.length; xyz++) {
       var currentIndex = 0;

@@ -67,6 +67,13 @@ X.colortable = function() {
    */
   this._map = new goog.structs.Map();
 
+  /**
+   * The number of colors in the colortable
+   * @type {!number}
+   * @public
+   */
+  this._numberOfColors = 0;
+
   // inject functionality
   inject(this, new X.loadable()); // this object is loadable from a file
 

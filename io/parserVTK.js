@@ -59,7 +59,13 @@ X.parserVTK = function() {
    * @const
    */
   this._classname = 'parserVTK';
-  
+
+  /**
+   * Flag for whether this object has scalar values to parse
+   * @type {bool}
+   * @public
+   */
+  this._hasScalars = false;
 };
 // inherit from X.parser
 goog.inherits(X.parserVTK, X.parser);
@@ -74,7 +80,7 @@ X.parserVTK.prototype.parse = function(container, object, data, flag) {
   
   var p = object._points;
   var n = object._normals;
-  var s = object._scalars;
+  var s = new X.scalars();
   
   var _data = new Uint8Array(data);
   
@@ -83,7 +89,8 @@ X.parserVTK.prototype.parse = function(container, object, data, flag) {
   // allocate memory using a good guess
   object._points = p = new X.triplets(data.byteLength);
   object._normals = n = new X.triplets(data.byteLength);
-  object._scalars = s = new X.scalars();
+  //object._scalars = s = new X.scalars();
+  
 
   // holder for ordered triplets to eventually pull the array from and put into scalars (s._array)
   this._orderedScalars = new X.triplets(data.byteLength);
@@ -183,6 +190,10 @@ X.parserVTK.prototype.parse = function(container, object, data, flag) {
   var scalarMinMax = this.arrayMinMax(s._glArray);
   s._min = scalarMinMax[0];
   s._max = scalarMinMax[1];
+
+  if (this._hasScalars) {
+    object._scalars = s;
+  }
 
   // .. and set the objectType
   object._type = this._objectType;
@@ -405,7 +416,8 @@ X.parserVTK.prototype.parseLine = function(line) {
     }
 
     if (firstLineField == 'SCALARS') {
-
+      
+      this._hasScalars = true;
       this._scalarsMode = true;
 
       return;
