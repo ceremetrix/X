@@ -228,7 +228,7 @@ X.object.prototype.__defineSetter__('colortable', function(colortable) {
     else {
       this._colortable = null;
     }
-    // force redraw in 3d renderer
+    // force redraw in 3d renderer if volume
     var xyz = 0;
     if (this instanceof X.labelmap) {
       for (xyz = 0; xyz < this._children.length; xyz++) {

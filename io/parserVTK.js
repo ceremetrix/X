@@ -35,6 +35,7 @@ goog.require('X.event');
 goog.require('X.object');
 goog.require('X.parser');
 goog.require('X.triplets');
+goog.require('X.scalars');
 
 
 
@@ -73,6 +74,7 @@ X.parserVTK.prototype.parse = function(container, object, data, flag) {
   
   var p = object._points;
   var n = object._normals;
+  var s = object._scalars;
   
   var _data = new Uint8Array(data);
   
@@ -81,6 +83,10 @@ X.parserVTK.prototype.parse = function(container, object, data, flag) {
   // allocate memory using a good guess
   object._points = p = new X.triplets(data.byteLength);
   object._normals = n = new X.triplets(data.byteLength);
+  object._scalars = s = new X.scalars();
+
+  // holder for ordered triplets to eventually pull the array from and put into scalars (s._array)
+  this._orderedScalars = new X.triplets(data.byteLength);
   
   // convert the char array to a string
   // the quantum is necessary to deal with large data
@@ -100,6 +106,9 @@ X.parserVTK.prototype.parse = function(container, object, data, flag) {
   // figure out the exact size later. this is faster.
   this._unorderedPoints = null;
   this._unorderedNormals = null;
+  this._unorderedScalars = null;
+  
+  //this._orderedScalars = null;
   
   // .. we also need a buffer for all indices
   this._geometries = [];
@@ -119,6 +128,8 @@ X.parserVTK.prototype.parse = function(container, object, data, flag) {
   this._pointDataMode = false;
   // one type of pointData are normals and right now the only supported ones
   this._normalsMode = false;
+  // attempting to add scalars as point data as well (LL)
+  this._scalarsMode = false;
   
 
   //
@@ -162,11 +173,20 @@ X.parserVTK.prototype.parse = function(container, object, data, flag) {
   }
   
   // now, configure the object according to the objectType
-  this.configure(p, n);
+  this.configure(p, n, s);
+
+  // add the array from the x.triplet to the scalar array
+  s._array = this._unorderedScalars._triplets; // unordered array
+  this._orderedScalars.resize(); // resize the ordered set to get rid of extra 0's
+  s._glArray = this._orderedScalars._triplets; // ordered and webgl ready
   
+  var scalarMinMax = this.arrayMinMax(s._glArray);
+  s._min = scalarMinMax[0];
+  s._max = scalarMinMax[1];
+
   // .. and set the objectType
   object._type = this._objectType;
-  
+    
   X.TIMERSTOP(this._classname + '.parse');
   
   // the object should be set up here, so let's fire a modified event
@@ -214,6 +234,8 @@ X.parserVTK.prototype.parseLine = function(line) {
     var numberOfPoints = parseInt(lineFields[1], 10);
     this._unorderedPoints = new X.triplets(numberOfPoints * 3);
     this._unorderedNormals = new X.triplets(numberOfPoints * 3);
+    // set up the same with triplets, then assign the _triplets array to the scalar array
+    this._unorderedScalars = new X.triplets(numberOfPoints * 3);
     
     // go to next line
     return;
@@ -381,12 +403,26 @@ X.parserVTK.prototype.parseLine = function(line) {
       return;
       
     }
+
+    if (firstLineField == 'SCALARS') {
+
+      this._scalarsMode = true;
+
+      return;
+
+    }
     
+    if (firstLineField == 'LOOKUP_TABLE') {
+      // we're still in the scalars section, but skip this line
+      return;
+    }
+
     if (numberOfLineFields == 1 || isNaN(parseFloat(firstLineField))) {
       
       // this likely means end of pointDataMode
       this._pointDataMode = false;
       this._normalsMode = false;
+      this._scalarsMode = false;
       
       return;
       
@@ -417,7 +453,38 @@ X.parserVTK.prototype.parseLine = function(line) {
       }
       
     } // end of normalsMode
-    
+    // attempt at scalar mode
+    else if (this._scalarsMode) {
+
+      // sticking w/ sames assumption that there will be at max 9 scalars per row
+      // For webgl, scalars need 3 entries per point
+
+      // each scalar needs to be repeated 3x
+      if (numberOfLineFields >= 3) {
+        var x0 = parseFloat(lineFields[0]);
+        var y0 = parseFloat(lineFields[1]);
+        var z0 = parseFloat(lineFields[2]);        
+        this._unorderedScalars.add(x0, x0, x0);
+        this._unorderedScalars.add(y0, y0, y0);
+        this._unorderedScalars.add(z0, z0, z0);                
+      }
+      if (numberOfLineFields >= 6) {
+        var x1 = parseFloat(lineFields[3]);
+        var y1 = parseFloat(lineFields[4]);
+        var z1 = parseFloat(lineFields[5]);
+        this._unorderedScalars.add(x1, x1, x1);
+        this._unorderedScalars.add(y1, y1, y1);
+        this._unorderedScalars.add(z1, z1, z1); 
+      }
+      if (numberOfLineFields >= 9) {
+        var x2 = parseFloat(lineFields[6]);
+        var y2 = parseFloat(lineFields[7]);
+        var z2 = parseFloat(lineFields[8]);
+        this._unorderedScalars.add(x2, x2, x2);
+        this._unorderedScalars.add(y2, y2, y2);
+        this._unorderedScalars.add(z2, z2, z2); 
+      }
+    } //end of scalarsMode
   } // end of pointDataMode
   
 };
@@ -429,14 +496,17 @@ X.parserVTK.prototype.parseLine = function(line) {
  * 
  * @param {!X.triplets} p The points container of the X.object.
  * @param {!X.triplets} n The normals container of the X.object.
+ * @param {!X.scalars} s The scalars container of the X.object.
  */
-X.parserVTK.prototype.configure = function(p, n) {
+X.parserVTK.prototype.configure = function(p, n, s) {
 
   var unorderedPoints = this._unorderedPoints;
   var unorderedNormals = this._unorderedNormals;
+  var unorderedScalars = this._unorderedScalars; // (in triplet format!)  
   
   // cache often used values for fast access
   var numberOfUnorderedNormals = unorderedNormals.length;
+  var numberOfUnorderedScalars = unorderedScalars.length;
   
   var numberOfGeometries = this._geometries.length;
   var i = numberOfGeometries;
@@ -578,6 +648,43 @@ X.parserVTK.prototype.configure = function(p, n) {
         } // TRIANGLE_STRIPS
         
       }
+
+      //
+      // Scalars
+      //
+      
+      // grab scalar with current index, if it exists
+      var currentScalar = unorderedScalars.get(currentIndex);
+
+      // add it to the orderedScalars object, which is an X.triplet
+      this._orderedScalars.add(currentScalar[0], currentScalar[1], currentScalar[2]);
+
+      // repeat same code above for lines, triangle strips, etc.
+      // for LINES, add the next scalar (neighbor)
+      if (this._objectType == X.displayable.types.LINES) {
+        
+        // the neighbor
+        var nextScalar = unorderedScalars.get(nextIndex);
+        
+        // .. and add it
+        this._orderedScalars.add(nextScalar[0], nextScalar[1], nextScalar[2]);
+        
+      } // LINES
+
+      // for TRIANGLE_STRIPS, special case
+      else if (this._objectType == X.displayable.types.TRIANGLE_STRIPS) {
+        
+        // check if this is the first or last element
+        if (k == 0 || k == currentGeometryLength - 1) {
+          
+          // if this is the first or last point of the triangle strip, add it
+          // again
+          this._orderedScalars.add(currentScalar[0], currentScalar[1], currentScalar[2]);
+          
+        }
+        
+      } // TRIANGLE_STRIPS             
+
       
     } // for loop through the currentGeometry
     
