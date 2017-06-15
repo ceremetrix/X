@@ -620,6 +620,11 @@ X.volume.prototype.slicing_ = function() {
       // add it to renderer!
       this._children[xyz].modified(true);
     }
+    
+    // If the texture of the slice is dirty, fire a modified event (specifically built for changing window/level and updating 3d)
+    if (this._children[xyz]._children[parseInt(currentIndex, 10)]._texture._dirty) {
+      this._children[xyz].modified();
+    }
     // DONE RESLICING!
 
     // reset dirty flag used to force reslicing
@@ -1056,35 +1061,54 @@ X.volume.prototype.__defineGetter__('windowLow', function() {
 X.volume.prototype.__defineSetter__('windowLow', function(windowLow) {
 
   this._windowLow = windowLow;
- // force redraw in 3d renderer
-    var xyz = 0;
-    if (this instanceof X.labelmap) {
-      for (xyz = 0; xyz < this._children.length; xyz++) {
-        var currentIndex = 0;
-        if (xyz == 0) {
-          currentIndex = this._volume._indexX;          
 
-        } else if (xyz == 1) {
-          currentIndex = this._volume._indexY;
-          
-        } else if (xyz == 2) {
-          currentIndex = this._volume._indexZ;
-          
-        }
-        this._children[xyz]._children[currentIndex]._texture._dirty = true;
-        this._children[xyz].modified();
+  if (this instanceof X.volume) {
+    for (xyz = 0; xyz < this._children.length; xyz++) {
+      var currentIndex = 0;
+      if (xyz == 0) {
+        currentIndex = this._indexX;          
+
+      } else if (xyz == 1) {
+        currentIndex = this._indexY;
+        
+      } else if (xyz == 2) {
+        currentIndex = this._indexZ;
+        
       }
-    } else if (this instanceof X.volume) {
-        for (xyz = 0; xyz < this._children.length; xyz++) {
-          for(var j = 0; j < this._children[xyz]._children.length; j++){
-            if(this._children[xyz]._children[j]){
-              this._children[xyz]._children[j]._texture._dirty = true;
-              this._children[xyz].modified();
-            }
-          }
+      this._children[xyz]._children[currentIndex]._texture._dirty = true;
+      this._children[xyz]._children[currentIndex].modified(false);
 
-        }
+      for (var j = 0; j < this._children[xyz]._children.length; j ++) {
+          if (this._children[xyz]._children[j] && j != currentIndex) {
+            this._children[xyz]._children[j]._texture._dirty = true;            
+          }
+      }    
+          
     }
+  } else if (this instanceof X.labelmap) {
+    for (xyz = 0; xyz < this._children.length; xyz++) {
+      var currentIndex = 0;
+      if (xyz == 0) {
+        currentIndex = this._volume._indexX;          
+
+      } else if (xyz == 1) {
+        currentIndex = this._volume._indexY;
+        
+      } else if (xyz == 2) {
+        currentIndex = this._volume._indexZ;
+        
+      }
+      this._children[xyz]._children[currentIndex]._texture._dirty = true;
+      this._children[xyz]._children[currentIndex].modified(false);
+
+      for (var j = 0; j < this._children[xyz]._children.length; j ++) {
+          if (this._children[xyz]._children[j] && j != currentIndex) {
+            this._children[xyz]._children[j]._texture._dirty = true;            
+          }
+      }
+            
+    } 
+  }
 
 });
 
@@ -1112,36 +1136,56 @@ X.volume.prototype.__defineGetter__('windowHigh', function() {
 X.volume.prototype.__defineSetter__('windowHigh', function(windowHigh) {
 
   this._windowHigh = windowHigh;
+  
+  // -------  temp ok block
 
-  // force redraw in 3d renderer
-    var xyz = 0;
-    if (this instanceof X.labelmap) {
-      for (xyz = 0; xyz < this._children.length; xyz++) {
-        var currentIndex = 0;
-        if (xyz == 0) {
-          currentIndex = this._volume._indexX;          
+  if (this instanceof X.volume) {
+    for (xyz = 0; xyz < this._children.length; xyz++) {
+      var currentIndex = 0;
+      if (xyz == 0) {
+        currentIndex = this._indexX;          
 
-        } else if (xyz == 1) {
-          currentIndex = this._volume._indexY;
-          
-        } else if (xyz == 2) {
-          currentIndex = this._volume._indexZ;
-          
-        }
-        this._children[xyz]._children[currentIndex]._texture._dirty = true;
-        this._children[xyz].modified();
+      } else if (xyz == 1) {
+        currentIndex = this._indexY;
+        
+      } else if (xyz == 2) {
+        currentIndex = this._indexZ;
+        
       }
-    } else if (this instanceof X.volume) {
-        for (xyz = 0; xyz < this._children.length; xyz++) {
-          for(var j = 0; j < this._children[xyz]._children.length; j++){
-            if(this._children[xyz]._children[j]){
-              this._children[xyz]._children[j]._texture._dirty = true;
-              this._children[xyz].modified();
-            }
-          }
+      this._children[xyz]._children[currentIndex]._texture._dirty = true;
+      this._children[xyz]._children[currentIndex].modified(false);
 
-        }
+      for (var j = 0; j < this._children[xyz]._children.length; j ++) {
+          if (this._children[xyz]._children[j] && j != currentIndex) {
+            this._children[xyz]._children[j]._texture._dirty = true;            
+          }
+      }    
+          
     }
+  } else if (this instanceof X.labelmap) {
+    for (xyz = 0; xyz < this._children.length; xyz++) {
+      var currentIndex = 0;
+      if (xyz == 0) {
+        currentIndex = this._volume._indexX;          
+
+      } else if (xyz == 1) {
+        currentIndex = this._volume._indexY;
+        
+      } else if (xyz == 2) {
+        currentIndex = this._volume._indexZ;
+        
+      }
+      this._children[xyz]._children[currentIndex]._texture._dirty = true;
+      this._children[xyz]._children[currentIndex].modified(false);
+
+      for (var j = 0; j < this._children[xyz]._children.length; j ++) {
+          if (this._children[xyz]._children[j] && j != currentIndex) {
+            this._children[xyz]._children[j]._texture._dirty = true;            
+          }
+      }
+            
+    } 
+  }
 
 });
 
@@ -1178,7 +1222,7 @@ X.volume.prototype.__defineSetter__('paramMin', function(paramMin) {
           for(var j = 0; j < this._children[xyz]._children.length; j++){
             if(this._children[xyz]._children[j]){
               this._children[xyz]._children[j]._texture._dirty = true;
-              this._children[xyz].modified();
+              //this._children[xyz].modified();
             }
           }
 
@@ -1188,7 +1232,7 @@ X.volume.prototype.__defineSetter__('paramMin', function(paramMin) {
 });
 
 /**
- * Set the paramMin value.
+ * Set the paramMax value.
  *
  * @param {!number}
  * @public
