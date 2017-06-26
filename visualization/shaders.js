@@ -271,24 +271,27 @@ X.shaders = function() {
   t2 += '     gl_FragColor = vec4(fragmentColor,1.0);\n';
   t2 += '     return;\n';
   t2 += '   }\n';
-  t2 += '   vec3 light = vec3(0.0, 0.0, 1.0);\n';
+  t2 += '   vec3 light = vec3(0.0, 0.0, 1.0);\n'; //(0,0,1) = original
   // t2 += ' vec3 lightDirection = vec3(-10.0, 4.0, -20.0);\n';
   // I liked the following better
-  t2 += '   vec3 lightDirection = vec3(0,0,-10);\n';
+  t2 += '   vec3 lightDirection = vec3(0,0,-10);\n'; //(0,0,-10) = original
   t2 += '   lightDirection = normalize(lightDirection);\n';
   t2 += '   vec3 eyeDirection = normalize(-fVertexPosition.xyz);\n';
   t2 += '   vec3 reflectionDirection = reflect(-lightDirection, nNormal);\n';
   // t2 += ' vec3 reflectionDirection = nNormal;\n'; <-- to disable reflection
   // configure specular (10.0 is material property), diffuse and ambient
-  t2 += '   float specular = pow(max(dot(reflectionDirection, eyeDirection), 0.0), 10.0);\n';
-  t2 += '   float diffuse = 0.8 * max(dot(nNormal, light), 0.0);\n';
-  t2 += '   float ambient = 0.3;\n';
+  t2 += '   float specular = pow(max(dot(reflectionDirection, eyeDirection), 0.0), 10.0);\n'; //original weight = 1
+  t2 += '   float diffuse = 0.1 * max(dot(nNormal, light), 0.0);\n'; //original weight = 0.8
+  t2 += '   float ambient = 0.85;\n'; // original weight = 0.3
   // .. and now setup the fragment color using these three values and the
   // opacity
   t2 += '   gl_FragColor = vec4(fragmentColor * ambient +\n';
   t2 += '                       fragmentColor * diffuse +\n';
-  t2 += '                       vec3(0.2, 0.2, 0.2) * specular,\n';
+  t2 += '                       vec3(0.1, 0.1, 0.1) * specular,\n'; //original = (0.2,0.2,0.2)
   t2 += '                       objectOpacity);\n';
+  // testing different light schemes: this works but provides no shadows -LL
+  //t2 += '   gl_FragColor = gl_FragColor = vec4(fragmentColor,objectOpacity);\n';
+
   t2 += ' }\n';
   t2 += '}\n';
   this._fragmentshaderSource = t2;
