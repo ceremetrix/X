@@ -398,3 +398,4 @@ X.loader.extensions = {
 
 // export symbols (required for advanced compilation)
 goog.exportSymbol('X.loader', X.loader);
+goog.exportSymbol('X.loader.prototype.completed', X.loader.prototype.completed);

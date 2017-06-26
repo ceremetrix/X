@@ -129,8 +129,6 @@ X.mesh.prototype.setColors = function(colortable){
   // via colortable map lookup
   var numColors = _colortable.keys_.length; // number of colors in colortable
 
-
-  var bad_colors = []; // delete this
   for (var i = 0; i < _scalarsArray.length; i += 3) {
     var scalar = _scalarsArray[i];
     var param = this._parametric;
@@ -154,10 +152,8 @@ X.mesh.prototype.setColors = function(colortable){
       colors.add(_color[1], _color[2], _color[3]); // (r, g, b)
     }
     else{
-      colors.add(255,105,180);
-      bad_colors.push([scalar, norm_scal]);
-    }
-    
+      colors.add(1,1,1);
+    }    
   }
 
   this._colors = colors;
@@ -165,7 +161,6 @@ X.mesh.prototype.setColors = function(colortable){
   this._scalars._replaceMode = false;
 
   this.modified();
-
 }
 
 /**

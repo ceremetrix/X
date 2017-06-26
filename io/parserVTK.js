@@ -470,7 +470,6 @@ X.parserVTK.prototype.parseLine = function(line) {
       
     } // end of normalsMode
     // attempt at scalar mode
-
     else if (this._scalarsMode) {
       // sticking w/ sames assumption that there will be at max 9 scalars per row,
       // however, you could have 1:9 entries, not necessarily in multiples of 3
@@ -654,10 +653,6 @@ X.parserVTK.prototype.configure = function(p, n, s) {
 
       // add it to the orderedScalars object, which is an X.triplet
       this._orderedScalars.add(currentScalar[0], currentScalar[1], currentScalar[2]);
-
-      if (isNaN(currentScalar[0]) || isNaN(currentScalar[1]) || isNaN(currentScalar[2])) {
-        var pause = 'pause';
-      }
 
       // repeat same code above for lines, triangle strips, etc.
       // for LINES, add the next scalar (neighbor)
