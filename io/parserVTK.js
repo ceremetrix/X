@@ -192,6 +192,10 @@ X.parserVTK.prototype.parse = function(container, object, data, flag) {
   s._max = scalarMinMax[1];
 
   if (this._hasScalars) {
+    if (object._parametric) {
+      // mesh object is parametric, so set scalar interpolation to true
+      s._interpolation = true;
+    }
     object._scalars = s;
   }
 
@@ -405,7 +409,7 @@ X.parserVTK.prototype.parseLine = function(line) {
   } // end of geometryMode
   else if (this._pointDataMode) {
     
-    // at the moment, only normals are supported as point-data
+    // at the moment, only normals are supported as point-data <-- nuh-uh. Scalars, BOOM!
     
     if (firstLineField == 'NORMALS') {
       
@@ -429,8 +433,8 @@ X.parserVTK.prototype.parseLine = function(line) {
       return;
     }
 
-    if (numberOfLineFields == 1 || isNaN(parseFloat(firstLineField))) {
-      
+    if (isNaN(parseFloat(firstLineField))) {
+      // with scalar data you could have instance of only 1 value on line, so just check whether its a number
       // this likely means end of pointDataMode
       this._pointDataMode = false;
       this._normalsMode = false;
@@ -442,7 +446,7 @@ X.parserVTK.prototype.parseLine = function(line) {
     
     // the normals mode
     if (this._normalsMode) {
-      
+            
       // assume 9 coordinate values (== 3 points) in one row
       
       if (numberOfLineFields >= 3) {
@@ -466,36 +470,16 @@ X.parserVTK.prototype.parseLine = function(line) {
       
     } // end of normalsMode
     // attempt at scalar mode
+
     else if (this._scalarsMode) {
-
-      // sticking w/ sames assumption that there will be at max 9 scalars per row
+      // sticking w/ sames assumption that there will be at max 9 scalars per row,
+      // however, you could have 1:9 entries, not necessarily in multiples of 3
       // For webgl, scalars need 3 entries per point
+      for (var i = 0; i < numberOfLineFields; i++) {
+        var scal = parseFloat(lineFields[i]);
+        this._unorderedScalars.add(scal, scal, scal);  
+      }
 
-      // each scalar needs to be repeated 3x
-      if (numberOfLineFields >= 3) {
-        var x0 = parseFloat(lineFields[0]);
-        var y0 = parseFloat(lineFields[1]);
-        var z0 = parseFloat(lineFields[2]);        
-        this._unorderedScalars.add(x0, x0, x0);
-        this._unorderedScalars.add(y0, y0, y0);
-        this._unorderedScalars.add(z0, z0, z0);                
-      }
-      if (numberOfLineFields >= 6) {
-        var x1 = parseFloat(lineFields[3]);
-        var y1 = parseFloat(lineFields[4]);
-        var z1 = parseFloat(lineFields[5]);
-        this._unorderedScalars.add(x1, x1, x1);
-        this._unorderedScalars.add(y1, y1, y1);
-        this._unorderedScalars.add(z1, z1, z1); 
-      }
-      if (numberOfLineFields >= 9) {
-        var x2 = parseFloat(lineFields[6]);
-        var y2 = parseFloat(lineFields[7]);
-        var z2 = parseFloat(lineFields[8]);
-        this._unorderedScalars.add(x2, x2, x2);
-        this._unorderedScalars.add(y2, y2, y2);
-        this._unorderedScalars.add(z2, z2, z2); 
-      }
     } //end of scalarsMode
   } // end of pointDataMode
   
@@ -670,6 +654,10 @@ X.parserVTK.prototype.configure = function(p, n, s) {
 
       // add it to the orderedScalars object, which is an X.triplet
       this._orderedScalars.add(currentScalar[0], currentScalar[1], currentScalar[2]);
+
+      if (isNaN(currentScalar[0]) || isNaN(currentScalar[1]) || isNaN(currentScalar[2])) {
+        var pause = 'pause';
+      }
 
       // repeat same code above for lines, triangle strips, etc.
       // for LINES, add the next scalar (neighbor)
