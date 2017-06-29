@@ -196,6 +196,8 @@ X.parserVTK.prototype.parse = function(container, object, data, flag) {
       // mesh object is parametric, so set scalar interpolation to true
       s._interpolation = true;
     }
+    object._windowLow = s._min;
+    object._windowHigh = s._max;
     object._scalars = s;
   }
 

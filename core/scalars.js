@@ -110,23 +110,7 @@ X.scalars = function() {
   /**
    * @inheritDoc
    */
-  this._maxColor = [1, 0, 0];
-
-  /**
-   * LL added: the parametric max (smallest zScore > 0)
-   *
-   * @type {!number}
-   * @private
-   */
-  this._paramMax = 0;
-
-  /**
-   * LL added: the parametric min (largest zScore < 0)
-   *
-   * @type {!number}
-   * @private
-   */
-  this._paramMin = 0;
+  this._maxColor = [1, 0, 0];  
 
 };
 // inherit from X.base
@@ -200,58 +184,6 @@ X.scalars.prototype.__defineGetter__('interpolation', function() {
 X.scalars.prototype.__defineSetter__('interpolation', function(value) {
 
   this._interpolation = value;  
-
-});
-
-/**
- * Set the paramMin value.
- *
- * @param {!number}
- * @public
- */
-X.scalars.prototype.__defineSetter__('paramMin', function(paramMin) {
-
-  this._paramMin = paramMin;
-
-  this._dirty = true; // so renderer can pick change up
-
-});
-
-/**
- * Set the paramMax value.
- *
- * @param {!number}
- * @public
- */
-X.scalars.prototype.__defineSetter__('paramMax', function(paramMax) {
-
-  this._paramMax = paramMax;
-
-  this._dirty = true; // so renderer can pick change up
-
-});
-
-/**
- * Return the paramMin value.
- *
- * @return {!number} 
- * @public
- */
-X.scalars.prototype.__defineGetter__('paramMin', function() {
-
-  return this._paramMin;
-
-});
-
-/**
- * Return the paramMax value.
- *
- * @return {!number} 
- * @public
- */
-X.scalars.prototype.__defineGetter__('paramMax', function() {
-
-  return this._paramMax;
 
 });
 

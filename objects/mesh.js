@@ -63,6 +63,36 @@ X.mesh = function() {
    * @public
    */
   this._parametric = false;
+
+  /**
+   * the lower window for the mesh coloring
+   * @type {!number}
+   * @private
+   */
+  this._windowLow = Infinity;
+
+  /**
+   * the upper window for the mesh coloring
+   * @type {!number}
+   * @private
+   */
+  this._windowHigh = -Infinity;
+
+  /**
+   * LL added: the parametric max (smallest zScore > 0)
+   *
+   * @type {!number}
+   * @private
+   */
+  this._paramMax = 0;
+
+  /**
+   * LL added: the parametric min (largest zScore < 0)
+   *
+   * @type {!number}
+   * @private
+   */
+  this._paramMin = 0;  
   
   // inject functionality
   inject(this, new X.loadable()); // this object is loadable from a file
@@ -79,7 +109,7 @@ X.mesh.prototype.__defineGetter__('parametric', function() {
 
   return this._parametric;
 
-})
+});
 
 /**
  * Set the parametric property
@@ -94,7 +124,122 @@ X.mesh.prototype.__defineSetter__('parametric', function(parametric) {
   if (goog.isDefAndNotNull(this._scalars)) {
     this._scalars.interpolation = parametric;
   }
-})
+});
+
+/**
+ * Get the windowLow property
+ * @public
+ */
+X.mesh.prototype.__defineGetter__('windowLow', function() {
+
+  return this._windowLow;
+
+});
+
+/**
+ * Set the windowLow property
+ * @param {!number}
+ * @public
+ */
+X.mesh.prototype.__defineSetter__('windowLow', function(windowLow) {
+  
+  this._windowLow = windowLow;
+  
+  // update the coloring
+  if (goog.isDefAndNotNull(this._scalars) && 
+      goog.isDefAndNotNull(this._colortable)) {
+        this.setColors(this._colortable)
+  };
+  
+});
+
+/**
+ * Get the windowHigh property
+ * @public
+ */
+X.mesh.prototype.__defineGetter__('windowHigh', function(windowHigh) {
+
+  return this._windowHigh;
+
+});
+
+/**
+ * Set the windowLow property
+ * @param {!number}
+ * @public
+ */
+X.mesh.prototype.__defineSetter__('windowHigh', function(windowHigh) {
+  
+  this._windowHigh = windowHigh;
+  
+  // update the coloring
+  if (goog.isDefAndNotNull(this._scalars) && 
+      goog.isDefAndNotNull(this._colortable)) {
+        this.setColors(this._colortable)
+  };
+  
+});
+
+/**
+ * Set the paramMin value.
+ *
+ * @param {!number}
+ * @public
+ */
+X.mesh.prototype.__defineSetter__('paramMin', function(paramMin) {
+
+  this._paramMin = paramMin;
+
+  // update colors
+  if (goog.isDefAndNotNull(this._scalars) && 
+      goog.isDefAndNotNull(this._colortable)) {
+        this.setColors(this._colortable)
+  };
+
+});
+
+/**
+ * Set the paramMax value.
+ *
+ * @param {!number}
+ * @public
+ */
+X.mesh.prototype.__defineSetter__('paramMax', function(paramMax) {
+
+  this._paramMax = paramMax;
+
+  // update colors
+  if (goog.isDefAndNotNull(this._scalars) && 
+      goog.isDefAndNotNull(this._colortable)) {
+        this.setColors(this._colortable)
+  };
+
+});
+
+/**
+ * Return the paramMin value.
+ *
+ * @return {!number} 
+ * @public
+ */
+X.scalars.prototype.__defineGetter__('paramMin', function() {
+
+  return this._paramMin;
+
+});
+
+/**
+ * Return the paramMax value.
+ *
+ * @return {!number} 
+ * @public
+ */
+X.scalars.prototype.__defineGetter__('paramMax', function() {
+
+  return this._paramMax;
+
+});
+
 
 /**
  * Set the point colors for the mesh object if a colortable is present or given
@@ -116,10 +261,10 @@ X.mesh.prototype.setColors = function(colortable){
     this._colortable = colortable;
   }
 
-  var _min = this._scalars._min;
-  var _max = this._scalars._max;
-  var _paramMin = this._scalars._paramMin;
-  var _paramMax = this._scalars._paramMax;
+  var windowLow = this._windowLow; //_min
+  var windowHigh = this._windowHigh; //_max
+  var _paramMin = this._paramMin;
+  var _paramMax = this._paramMax;
 
   var _scalars = this._scalars;
   var _scalarsArray = this._scalars._glArray; // the scalars to assign color to
@@ -134,26 +279,47 @@ X.mesh.prototype.setColors = function(colortable){
     var param = this._parametric;
     var norm_scal = 0;
 
-    if (!param) {
-      // non-parametric, normalize from min to max 
-      norm_scal = Math.round(255 * (scalar - _min)/( _max - _min));
-
-    } else {
-      // parametric -> scale negs from min to 0, pos from 0 to max:
-      if (scalar <= 0) {
-        norm_scal = Math.round((numColors/2)-1 - ((Math.abs(scalar) - _paramMin)* -((numColors/2)-1)/(_min - _paramMin)))
-      } else {
-        norm_scal = Math.round((numColors/2) + ((scalar - _paramMax)*((numColors-1)-(numColors/2))/(_max - _paramMax)));
-      }
+    // first check to see if it's within windown bounds
+    if (scalar < windowLow) {
+      // make it black
+      colors.add(0,0,0);
     }
-
-    var _color = _colortable.get(norm_scal)
-    if (goog.isDefAndNotNull(_color)) {
-      colors.add(_color[1], _color[2], _color[3]); // (r, g, b)
-    }
-    else{
+    else if (scalar > windowHigh) {
+      // make it white
       colors.add(1,1,1);
-    }    
+    }
+    else if ((scalar >=0 && scalar < _paramMax) || (scalar <=0 && scalar > _paramMin)) {
+      // make it a grey-ish
+      colors.add(0.65, 0.65, 0.65);
+    }
+    else {
+      if (!param) {
+        // non-parametric, normalize from min to max 
+        norm_scal = Math.round(255 * (scalar - windowLow)/( windowHigh - windowLow));
+
+      } 
+      else {
+        // parametric -> scale negs from min to 0, pos from 0 to max:
+        if (scalar <= 0) {
+          
+          norm_scal = Math.round((numColors/2)-1 - ((Math.abs(scalar) - _paramMin)* ((numColors/2)-1)/(Math.abs(windowLow) - _paramMin)))
+                    
+        } 
+        else {
+          
+          norm_scal = Math.round((numColors/2) + ((scalar - _paramMax)*((numColors-1)-(numColors/2))/(windowHigh - _paramMax)));
+                    
+        }
+      }
+
+      var _color = _colortable.get(norm_scal)
+      if (goog.isDefAndNotNull(_color)) {
+        colors.add(_color[1], _color[2], _color[3]); // (r, g, b)
+      }
+      else{
+        colors.add(1,1,1);
+      } 
+    }       
   }
 
   this._colors = colors;
@@ -161,7 +327,7 @@ X.mesh.prototype.setColors = function(colortable){
   this._scalars._replaceMode = false;
 
   this.modified();
-}
+};
 
 /**
  * Set the mesh to have one solid color
@@ -181,7 +347,7 @@ X.mesh.prototype.setSolidColor = function(array) {
     this._scalars._maxColor = array;
     this._scalars._replaceMode = true;
   }
-}
+};
 
 // export symbols (required for advanced compilation)
 goog.exportSymbol('X.mesh', X.mesh);
