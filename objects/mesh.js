@@ -222,7 +222,7 @@ X.mesh.prototype.__defineSetter__('paramMax', function(paramMax) {
  * @return {!number} 
  * @public
  */
-X.scalars.prototype.__defineGetter__('paramMin', function() {
+X.mesh.prototype.__defineGetter__('paramMin', function() {
 
   return this._paramMin;
 
@@ -234,7 +234,7 @@ X.scalars.prototype.__defineGetter__('paramMin', function() {
  * @return {!number} 
  * @public
  */
-X.scalars.prototype.__defineGetter__('paramMax', function() {
+X.mesh.prototype.__defineGetter__('paramMax', function() {
 
   return this._paramMax;
 
